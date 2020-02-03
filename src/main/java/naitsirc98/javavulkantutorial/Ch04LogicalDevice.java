@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.lwjgl.glfw.GLFW.*;
@@ -261,14 +262,13 @@ public class Ch04LogicalDevice {
 
                 VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(1, stack);
 
-                queueCreateInfos.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+                queueCreateInfos.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
                 queueCreateInfos.queueFamilyIndex(indices.graphicsFamily);
-                VkDeviceQueueCreateInfo.nqueueCount(queueCreateInfos.address(), 1);
                 queueCreateInfos.pQueuePriorities(stack.floats(1.0f));
 
                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
 
-                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.mallocStack(stack);
+                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
                 createInfo.pQueueCreateInfos(queueCreateInfos);
@@ -317,10 +317,10 @@ public class Ch04LogicalDevice {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
-                indices.graphicsFamily = queueFamilies.stream()
-                        .map(VkQueueFamilyProperties::queueFlags)
-                        .filter(queueFlags -> (queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0)
-                        .findAny().orElse(null);
+                IntStream.range(0, queueFamilies.capacity())
+                        .filter(index -> (queueFamilies.get(index).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0)
+                        .findFirst()
+                        .ifPresent(index -> indices.graphicsFamily = index);
 
                 return indices;
             }
