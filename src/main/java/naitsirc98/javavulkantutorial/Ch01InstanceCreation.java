@@ -66,6 +66,8 @@ public class Ch01InstanceCreation {
 
         private void cleanup() {
 
+            vkDestroyInstance(instance, null);
+
             glfwDestroyWindow(window);
 
             glfwTerminate();
