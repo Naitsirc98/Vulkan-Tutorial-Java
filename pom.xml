@@ -15,6 +15,19 @@
         <joml.version>1.9.20</joml.version>
     </properties>
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.vert</include>
+                    <include>**/*.frag</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
     <profiles>
         <profile>
             <id>lwjgl-natives-linux-amd64</id>
