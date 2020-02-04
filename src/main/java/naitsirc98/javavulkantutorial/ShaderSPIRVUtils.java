@@ -1,5 +1,7 @@
 package naitsirc98.javavulkantutorial;
 
+import org.lwjgl.system.NativeResource;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,11 +15,11 @@ import static org.lwjgl.util.shaderc.Shaderc.*;
 
 public class ShaderSPIRVUtils {
 
-    public static ByteBuffer compileShaderFile(String shaderFile, ShaderKind shaderKind) {
+    public static SPIRV compileShaderFile(String shaderFile, ShaderKind shaderKind) {
         return compileShaderAbsoluteFile(getSystemClassLoader().getResource(shaderFile).toExternalForm(), shaderKind);
     }
 
-    public static ByteBuffer compileShaderAbsoluteFile(String shaderFile, ShaderKind shaderKind) {
+    public static SPIRV compileShaderAbsoluteFile(String shaderFile, ShaderKind shaderKind) {
         try {
             String source = new String(Files.readAllBytes(Paths.get(new URI(shaderFile))));
             return compileShader(shaderFile, source, shaderKind);
@@ -27,7 +29,7 @@ public class ShaderSPIRVUtils {
         return null;
     }
 
-    public static ByteBuffer compileShader(String filename, String source, ShaderKind shaderKind) {
+    public static SPIRV compileShader(String filename, String source, ShaderKind shaderKind) {
 
         long compiler = shaderc_compiler_initialize();
 
@@ -41,9 +43,13 @@ public class ShaderSPIRVUtils {
             throw new RuntimeException("Failed to compile shader " + filename + " into SPIR-V");
         }
 
+        if(shaderc_result_get_compilation_status(result) != shaderc_compilation_status_success) {
+            throw new RuntimeException("Failed to compile shader " + filename + "into SPIR-V:\n " + shaderc_result_get_error_message(result));
+        }
+
         shaderc_compiler_release(compiler);
 
-        return shaderc_result_get_bytes(result);
+        return new SPIRV(result, shaderc_result_get_bytes(result));
     }
 
     public enum ShaderKind {
@@ -56,6 +62,27 @@ public class ShaderSPIRVUtils {
 
         ShaderKind(int kind) {
             this.kind = kind;
+        }
+    }
+
+    public static final class SPIRV implements NativeResource {
+
+        private final long handle;
+        private ByteBuffer bytecode;
+
+        public SPIRV(long handle, ByteBuffer bytecode) {
+            this.handle = handle;
+            this.bytecode = bytecode;
+        }
+
+        public ByteBuffer bytecode() {
+            return bytecode;
+        }
+
+        @Override
+        public void free() {
+            shaderc_result_release(handle);
+            bytecode = null; // Help the GC
         }
     }
 
