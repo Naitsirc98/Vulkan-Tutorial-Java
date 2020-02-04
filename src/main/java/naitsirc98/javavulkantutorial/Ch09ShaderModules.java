@@ -484,7 +484,7 @@ public class Ch09ShaderModules {
             try(MemoryStack stack = stackPush()) {
 
                 // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
-                // Check ShaderSPIRVUtils class to see at how it can be done
+                // Check ShaderSPIRVUtils class to see how it can be done
                 SPIRV vertShaderSPIRV = compileShaderFile("shaders/Ch09_shader_base.vert", VERTEX_SHADER);
                 SPIRV fragShaderSPIRV = compileShaderFile("shaders/Ch09_shader_base.frag", FRAGMENT_SHADER);
 
