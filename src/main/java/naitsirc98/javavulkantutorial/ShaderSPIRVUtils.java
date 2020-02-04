@@ -1,6 +1,5 @@
 package naitsirc98.javavulkantutorial;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,11 +35,13 @@ public class ShaderSPIRVUtils {
             throw new RuntimeException("Failed to create shader compiler");
         }
 
-        long result = shaderc_compile_into_spv(compiler, source, shaderKind.kind, filename, filename, NULL);
+        long result = shaderc_compile_into_spv(compiler, source, shaderKind.kind, filename, "main", NULL);
 
         if(result == NULL) {
             throw new RuntimeException("Failed to compile shader " + filename + " into SPIR-V");
         }
+
+        shaderc_compiler_release(compiler);
 
         return shaderc_result_get_bytes(result);
     }
