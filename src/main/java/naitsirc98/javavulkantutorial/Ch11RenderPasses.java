@@ -451,20 +451,18 @@ public class Ch11RenderPasses {
 
         private void createImageViews() {
 
-            final int swapChainImageViewsCount = swapChainImages.size();
-
-            swapChainImageViews = new ArrayList<>(swapChainImageViewsCount);
+            swapChainImageViews = new ArrayList<>(swapChainImages.size());
 
             try(MemoryStack stack = stackPush()) {
 
                 LongBuffer pImageView = stack.mallocLong(1);
 
-                for(int i = 0;i < swapChainImageViewsCount;i++) {
+                for(long swapChainImage : swapChainImages) {
 
                     VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
 
                     createInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
-                    createInfo.image(swapChainImages.get(0));
+                    createInfo.image(swapChainImage);
                     createInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
                     createInfo.format(swapChainImageFormat);
 
