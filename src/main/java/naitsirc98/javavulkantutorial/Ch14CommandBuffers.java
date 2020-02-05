@@ -189,6 +189,8 @@ public class Ch14CommandBuffers {
 
         private void cleanup() {
 
+            vkDestroyCommandPool(device, commandPool, null);
+
             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
 
             vkDestroyPipeline(device, graphicsPipeline, null);
@@ -778,6 +780,7 @@ public class Ch14CommandBuffers {
 
                     renderPassInfo.framebuffer(swapChainFramebuffers.get(i));
 
+
                     vkCmdBeginRenderPass(commandBuffer, renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
                     {
                         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
@@ -785,6 +788,7 @@ public class Ch14CommandBuffers {
                         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
                     }
                     vkCmdEndRenderPass(commandBuffer);
+
 
                     if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
                         throw new RuntimeException("Failed to record command buffer");
