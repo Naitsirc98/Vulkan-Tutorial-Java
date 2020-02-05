@@ -443,13 +443,15 @@ public class Ch09ShaderModules {
 
         private void createImageViews() {
 
-            swapChainImageViews = new ArrayList<>(swapChainImages.size());
+            final int swapChainImageViewsCount = swapChainImages.size();
+
+            swapChainImageViews = new ArrayList<>(swapChainImageViewsCount);
 
             try(MemoryStack stack = stackPush()) {
 
                 LongBuffer pImageView = stack.mallocLong(1);
 
-                for(int i = 0;i < swapChainImageViews.size();i++) {
+                for(int i = 0;i < swapChainImageViewsCount;i++) {
 
                     VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
 
