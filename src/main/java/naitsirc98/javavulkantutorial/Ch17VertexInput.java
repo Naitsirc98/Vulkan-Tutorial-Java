@@ -6,6 +6,7 @@ import org.joml.Vector2fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Pointer;
 import org.lwjgl.vulkan.*;
@@ -136,7 +137,7 @@ public class Ch17VertexInput {
             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
 
                 VkVertexInputBindingDescription.Buffer bindingDescription =
-                        VkVertexInputBindingDescription.create(1);
+                        VkVertexInputBindingDescription.callocStack(1);
 
                 bindingDescription.binding(0);
                 bindingDescription.stride(Vertex.SIZEOF);
@@ -214,13 +215,10 @@ public class Ch17VertexInput {
         // ======= METHODS ======= //
 
         public void run() {
-            try {
-                initWindow();
-                initVulkan();
-                mainLoop();
-            } finally {
-                cleanup();
-            }
+            initWindow();
+            initVulkan();
+            mainLoop();
+            cleanup();
         }
 
         private void initWindow() {
@@ -993,6 +991,8 @@ public class Ch17VertexInput {
                 if(vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
                     recreateSwapChain();
                     return;
+                } else if(vkResult != VK_SUCCESS) {
+                    throw new RuntimeException("Cannot get image");
                 }
 
                 final int imageIndex = pImageIndex.get(0);
@@ -1016,8 +1016,8 @@ public class Ch17VertexInput {
 
                 vkResetFences(device, thisFrame.pFence());
 
-                if(vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence()) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to submit draw command buffer");
+                if((vkResult = vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence())) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to submit draw command buffer: " + vkResult);
                 }
 
                 VkPresentInfoKHR presentInfo = VkPresentInfoKHR.callocStack(stack);
@@ -1264,6 +1264,10 @@ public class Ch17VertexInput {
     }
 
     public static void main(String[] args) {
+
+        Configuration.DEBUG_LOADER.set(true);
+        Configuration.DEBUG.set(true);
+        Configuration.DEBUG_FUNCTIONS.set(true);
 
         HelloTriangleApplication app = new HelloTriangleApplication();
 
