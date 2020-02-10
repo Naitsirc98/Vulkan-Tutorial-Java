@@ -136,7 +136,7 @@ public class Ch17VertexInput {
             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
 
                 VkVertexInputBindingDescription.Buffer bindingDescription =
-                        VkVertexInputBindingDescription.create(1);
+                        VkVertexInputBindingDescription.callocStack(1);
 
                 bindingDescription.binding(0);
                 bindingDescription.stride(Vertex.SIZEOF);
@@ -988,7 +988,8 @@ public class Ch17VertexInput {
 
                 IntBuffer pImageIndex = stack.mallocInt(1);
 
-                int vkResult = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
+                int vkResult = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
+                        thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
 
                 if(vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
                     recreateSwapChain();
