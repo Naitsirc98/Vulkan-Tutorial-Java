@@ -1,6 +1,6 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
-import naitsirc98.javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -13,9 +13,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
@@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch10FixedFunctions {
+public class Ch12GraphicsPipelineComplete {
 
     private static class HelloTriangleApplication {
 
@@ -129,7 +129,9 @@ public class Ch10FixedFunctions {
         private int swapChainImageFormat;
         private VkExtent2D swapChainExtent;
 
+        private long renderPass;
         private long pipelineLayout;
+        private long graphicsPipeline;
 
         // ======= METHODS ======= //
 
@@ -166,6 +168,7 @@ public class Ch10FixedFunctions {
             createLogicalDevice();
             createSwapChain();
             createImageViews();
+            createRenderPass();
             createGraphicsPipeline();
         }
 
@@ -179,7 +182,11 @@ public class Ch10FixedFunctions {
 
         private void cleanup() {
 
+            vkDestroyPipeline(device, graphicsPipeline, null);
+
             vkDestroyPipelineLayout(device, pipelineLayout, null);
+
+            vkDestroyRenderPass(device, renderPass, null);
 
             swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
 
@@ -483,6 +490,44 @@ public class Ch10FixedFunctions {
             }
         }
 
+        private void createRenderPass() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
+                colorAttachment.format(swapChainImageFormat);
+                colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
+                colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
+                colorAttachment.storeOp(VK_ATTACHMENT_STORE_OP_STORE);
+                colorAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+                colorAttachment.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
+                colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+                colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
+                colorAttachmentRef.attachment(0);
+                colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+                VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
+                subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
+                subpass.colorAttachmentCount(1);
+                subpass.pColorAttachments(colorAttachmentRef);
+
+                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
+                renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
+                renderPassInfo.pAttachments(colorAttachment);
+                renderPassInfo.pSubpasses(subpass);
+
+                LongBuffer pRenderPass = stack.mallocLong(1);
+
+                if(vkCreateRenderPass(device, renderPassInfo, null, pRenderPass) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to create render pass");
+                }
+
+                renderPass = pRenderPass.get(0);
+            }
+        }
+
         private void createGraphicsPipeline() {
 
             try(MemoryStack stack = stackPush()) {
@@ -589,6 +634,28 @@ public class Ch10FixedFunctions {
 
                 pipelineLayout = pPipelineLayout.get(0);
 
+                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.callocStack(1, stack);
+                pipelineInfo.sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
+                pipelineInfo.pStages(shaderStages);
+                pipelineInfo.pVertexInputState(vertexInputInfo);
+                pipelineInfo.pInputAssemblyState(inputAssembly);
+                pipelineInfo.pViewportState(viewportState);
+                pipelineInfo.pRasterizationState(rasterizer);
+                pipelineInfo.pMultisampleState(multisampling);
+                pipelineInfo.pColorBlendState(colorBlending);
+                pipelineInfo.layout(pipelineLayout);
+                pipelineInfo.renderPass(renderPass);
+                pipelineInfo.subpass(0);
+                pipelineInfo.basePipelineHandle(VK_NULL_HANDLE);
+                pipelineInfo.basePipelineIndex(-1);
+
+                LongBuffer pGraphicsPipeline = stack.mallocLong(1);
+
+                if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, pipelineInfo, null, pGraphicsPipeline) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to create graphics pipeline");
+                }
+
+                graphicsPipeline = pGraphicsPipeline.get(0);
 
                 // ===> RELEASE RESOURCES <===
 

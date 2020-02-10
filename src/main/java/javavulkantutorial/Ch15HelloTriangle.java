@@ -1,13 +1,8 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
-import naitsirc98.javavulkantutorial.ShaderSPIRVUtils.SPIRV;
-import org.joml.Vector2f;
-import org.joml.Vector2fc;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.Pointer;
 import org.lwjgl.vulkan.*;
 
 import java.nio.ByteBuffer;
@@ -18,22 +13,22 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.Configuration.DEBUG;
 import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch17VertexInput {
+public class Ch15HelloTriangle {
 
     private static class HelloTriangleApplication {
 
@@ -117,64 +112,6 @@ public class Ch17VertexInput {
 
         }
 
-        private static class Vertex {
-
-            private static final int SIZEOF = (2 + 3) * Float.BYTES;
-            private static final int OFFSETOF_POS = 0;
-            private static final int OFFSETOF_COLOR = 2 * Float.BYTES;
-
-            private Vector2fc pos;
-            private Vector3fc color;
-
-            public Vertex(Vector2fc pos, Vector3fc color) {
-                this.pos = pos;
-                this.color = color;
-            }
-
-            private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
-
-                VkVertexInputBindingDescription.Buffer bindingDescription =
-                        VkVertexInputBindingDescription.callocStack(1);
-
-                bindingDescription.binding(0);
-                bindingDescription.stride(Vertex.SIZEOF);
-                bindingDescription.inputRate(VK_VERTEX_INPUT_RATE_VERTEX);
-
-                return bindingDescription;
-            }
-
-            private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
-
-                VkVertexInputAttributeDescription.Buffer attributeDescriptions =
-                        VkVertexInputAttributeDescription.callocStack(2);
-
-                // Position
-                VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
-                posDescription.binding(0);
-                posDescription.location(0);
-                posDescription.format(VK_FORMAT_R32G32_SFLOAT);
-                posDescription.offset(OFFSETOF_POS);
-
-                // Color
-                VkVertexInputAttributeDescription colorDescription = attributeDescriptions.get(1);
-                colorDescription.binding(0);
-                colorDescription.location(1);
-                colorDescription.format(VK_FORMAT_R32G32B32_SFLOAT);
-                colorDescription.offset(OFFSETOF_COLOR);
-
-                return attributeDescriptions.rewind();
-            }
-
-        }
-
-        private static final List<Vertex> VERTICES = Arrays.asList(
-
-                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
-
-        );
-
         // ======= FIELDS ======= //
 
         private long window;
@@ -207,8 +144,6 @@ public class Ch17VertexInput {
         private Map<Integer, Frame> imagesInFlight;
         private int currentFrame;
 
-        boolean framebufferResize;
-
         // ======= METHODS ======= //
 
         public void run() {
@@ -225,7 +160,7 @@ public class Ch17VertexInput {
             }
 
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-            glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
             String title = getClass().getEnclosingClass().getSimpleName();
 
@@ -234,20 +169,6 @@ public class Ch17VertexInput {
             if(window == NULL) {
                 throw new RuntimeException("Cannot create window");
             }
-
-            // In Java, we don't really need a user pointer here, because
-            // we can simply pass an instance method reference to glfwSetFramebufferSizeCallback
-            // However, I will show you how can you pass a user pointer to glfw in Java just for learning purposes:
-            // long userPointer = JNINativeInterface.NewGlobalRef(this);
-            // glfwSetWindowUserPointer(window, userPointer);
-            // Please notice that the reference must be freed manually with JNINativeInterface.nDeleteGlobalRef
-            glfwSetFramebufferSizeCallback(window, this::framebufferResizeCallback);
-        }
-
-        private void framebufferResizeCallback(long window, int width, int height) {
-            // HelloTriangleApplication app = MemoryUtil.memGlobalRefToObject(glfwGetWindowUserPointer(window));
-            // app.framebufferResize = true;
-            framebufferResize = true;
         }
 
         private void initVulkan() {
@@ -256,8 +177,13 @@ public class Ch17VertexInput {
             createSurface();
             pickPhysicalDevice();
             createLogicalDevice();
+            createSwapChain();
+            createImageViews();
+            createRenderPass();
+            createGraphicsPipeline();
+            createFramebuffers();
             createCommandPool();
-            createSwapChainObjects();
+            createCommandBuffers();
             createSyncObjects();
         }
 
@@ -272,11 +198,19 @@ public class Ch17VertexInput {
             vkDeviceWaitIdle(device);
         }
 
-        private void cleanupSwapChain() {
+        private void cleanup() {
+
+            inFlightFrames.forEach(frame -> {
+
+                vkDestroySemaphore(device, frame.renderFinishedSemaphore(), null);
+                vkDestroySemaphore(device, frame.imageAvailableSemaphore(), null);
+                vkDestroyFence(device, frame.fence(), null);
+            });
+            imagesInFlight.clear();
+
+            vkDestroyCommandPool(device, commandPool, null);
 
             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
-
-            vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
 
             vkDestroyPipeline(device, graphicsPipeline, null);
 
@@ -287,21 +221,6 @@ public class Ch17VertexInput {
             swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
 
             vkDestroySwapchainKHR(device, swapChain, null);
-        }
-
-        private void cleanup() {
-
-            cleanupSwapChain();
-
-            inFlightFrames.forEach(frame -> {
-
-                vkDestroySemaphore(device, frame.renderFinishedSemaphore(), null);
-                vkDestroySemaphore(device, frame.imageAvailableSemaphore(), null);
-                vkDestroyFence(device, frame.fence(), null);
-            });
-            inFlightFrames.clear();
-
-            vkDestroyCommandPool(device, commandPool, null);
 
             vkDestroyDevice(device, null);
 
@@ -316,35 +235,6 @@ public class Ch17VertexInput {
             glfwDestroyWindow(window);
 
             glfwTerminate();
-        }
-
-        private void recreateSwapChain() {
-
-            try(MemoryStack stack = stackPush()) {
-
-                IntBuffer width = stack.ints(0);
-                IntBuffer height = stack.ints(0);
-
-                while(width.get(0) == 0 && height.get(0) == 0) {
-                    glfwGetFramebufferSize(window, width, height);
-                    glfwWaitEvents();
-                }
-            }
-
-            vkDeviceWaitIdle(device);
-
-            cleanupSwapChain();
-
-            createSwapChainObjects();
-        }
-
-        private void createSwapChainObjects() {
-            createSwapChain();
-            createImageViews();
-            createRenderPass();
-            createGraphicsPipeline();
-            createFramebuffers();
-            createCommandBuffers();
         }
 
         private void createInstance() {
@@ -683,8 +573,8 @@ public class Ch17VertexInput {
 
                 // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
                 // Check ShaderSPIRVUtils class to see how it can be done
-                SPIRV vertShaderSPIRV = compileShaderFile("shaders/Ch17ShaderVertexBuffer.vert", VERTEX_SHADER);
-                SPIRV fragShaderSPIRV = compileShaderFile("shaders/Ch17ShaderVertexBuffer.frag", FRAGMENT_SHADER);
+                SPIRV vertShaderSPIRV = compileShaderFile("shaders/Ch09_shader_base.vert", VERTEX_SHADER);
+                SPIRV fragShaderSPIRV = compileShaderFile("shaders/Ch09_shader_base.frag", FRAGMENT_SHADER);
 
                 long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                 long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
@@ -711,8 +601,6 @@ public class Ch17VertexInput {
 
                 VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
                 vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
-                vertexInputInfo.pVertexBindingDescriptions(Vertex.getBindingDescription());
-                vertexInputInfo.pVertexAttributeDescriptions(Vertex.getAttributeDescriptions());
 
                 // ===> ASSEMBLY STAGE <===
 
@@ -983,16 +871,7 @@ public class Ch17VertexInput {
 
                 IntBuffer pImageIndex = stack.mallocInt(1);
 
-                int vkResult = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
-                        thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
-
-                if(vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
-                    recreateSwapChain();
-                    return;
-                } else if(vkResult != VK_SUCCESS) {
-                    throw new RuntimeException("Cannot get image");
-                }
-
+                vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
                 final int imageIndex = pImageIndex.get(0);
 
                 if(imagesInFlight.containsKey(imageIndex)) {
@@ -1014,9 +893,8 @@ public class Ch17VertexInput {
 
                 vkResetFences(device, thisFrame.pFence());
 
-                if((vkResult = vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence())) != VK_SUCCESS) {
-                    vkResetFences(device, thisFrame.pFence());
-                    throw new RuntimeException("Failed to submit draw command buffer: " + vkResult);
+                if(vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence()) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to submit draw command buffer");
                 }
 
                 VkPresentInfoKHR presentInfo = VkPresentInfoKHR.callocStack(stack);
@@ -1029,14 +907,7 @@ public class Ch17VertexInput {
 
                 presentInfo.pImageIndices(pImageIndex);
 
-                vkResult = vkQueuePresentKHR(presentQueue, presentInfo);
-
-                if(vkResult == VK_ERROR_OUT_OF_DATE_KHR || vkResult == VK_SUBOPTIMAL_KHR || framebufferResize) {
-                    framebufferResize = false;
-                    recreateSwapChain();
-                } else if(vkResult != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to present swap chain image");
-                }
+                vkQueuePresentKHR(presentQueue, presentInfo);
 
                 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
             }
@@ -1086,12 +957,7 @@ public class Ch17VertexInput {
                 return capabilities.currentExtent();
             }
 
-            IntBuffer width = stackGet().ints(0);
-            IntBuffer height = stackGet().ints(0);
-
-            glfwGetFramebufferSize(window, width, height);
-
-            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(width.get(0), height.get(0));
+            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(WIDTH, HEIGHT);
 
             VkExtent2D minExtent = capabilities.minImageExtent();
             VkExtent2D maxExtent = capabilities.maxImageExtent();
@@ -1205,17 +1071,6 @@ public class Ch17VertexInput {
             collection.stream()
                     .map(stack::UTF8)
                     .forEach(buffer::put);
-
-            return buffer.rewind();
-        }
-
-        private PointerBuffer asPointerBuffer(List<? extends Pointer> list) {
-
-            MemoryStack stack = stackGet();
-
-            PointerBuffer buffer = stack.mallocPointer(list.size());
-
-            list.forEach(buffer::put);
 
             return buffer.rewind();
         }

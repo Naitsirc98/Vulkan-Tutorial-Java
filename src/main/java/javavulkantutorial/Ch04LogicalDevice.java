@@ -1,4 +1,4 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.lwjgl.glfw.GLFW.*;
@@ -19,7 +20,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch03PhysicalDeviceSelection {
+public class Ch04LogicalDevice {
 
     private static class HelloTriangleApplication {
 
@@ -83,6 +84,8 @@ public class Ch03PhysicalDeviceSelection {
         private VkInstance instance;
         private long debugMessenger;
         private VkPhysicalDevice physicalDevice;
+        private VkDevice device;
+        private VkQueue graphicsQueue;
 
         // ======= METHODS ======= //
 
@@ -115,6 +118,7 @@ public class Ch03PhysicalDeviceSelection {
             createInstance();
             setupDebugMessenger();
             pickPhysicalDevice();
+            createLogicalDevice();
         }
 
         private void mainLoop() {
@@ -126,6 +130,8 @@ public class Ch03PhysicalDeviceSelection {
         }
 
         private void cleanup() {
+
+            vkDestroyDevice(device, null);
 
             if(ENABLE_VALIDATION_LAYERS) {
                 destroyDebugUtilsMessengerEXT(instance, debugMessenger, null);
@@ -248,6 +254,48 @@ public class Ch03PhysicalDeviceSelection {
             }
         }
 
+        private void createLogicalDevice() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(1, stack);
+
+                queueCreateInfos.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
+                queueCreateInfos.queueFamilyIndex(indices.graphicsFamily);
+                queueCreateInfos.pQueuePriorities(stack.floats(1.0f));
+
+                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+
+                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
+
+                createInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+                createInfo.pQueueCreateInfos(queueCreateInfos);
+                // queueCreateInfoCount is automatically set
+
+                createInfo.pEnabledFeatures(deviceFeatures);
+
+                if(ENABLE_VALIDATION_LAYERS) {
+                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer());
+                }
+
+                PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
+
+                if(vkCreateDevice(physicalDevice, createInfo, null, pDevice) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to create logical device");
+                }
+
+                device = new VkDevice(pDevice.get(0), physicalDevice, createInfo);
+
+                PointerBuffer pGraphicsQueue = stack.pointers(VK_NULL_HANDLE);
+
+                vkGetDeviceQueue(device, indices.graphicsFamily, 0, pGraphicsQueue);
+
+                graphicsQueue = new VkQueue(pGraphicsQueue.get(0), device);
+            }
+        }
+
         private boolean isDeviceSuitable(VkPhysicalDevice device) {
 
             QueueFamilyIndices indices = findQueueFamilies(device);
@@ -269,10 +317,10 @@ public class Ch03PhysicalDeviceSelection {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
-                indices.graphicsFamily = queueFamilies.stream()
-                        .map(VkQueueFamilyProperties::queueFlags)
-                        .filter(queueFlags -> (queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0)
-                        .findAny().orElse(null);
+                IntStream.range(0, queueFamilies.capacity())
+                        .filter(index -> (queueFamilies.get(index).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0)
+                        .findFirst()
+                        .ifPresent(index -> indices.graphicsFamily = index);
 
                 return indices;
             }

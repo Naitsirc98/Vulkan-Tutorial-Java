@@ -1,11 +1,9 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
-import naitsirc98.javavulkantutorial.ShaderSPIRVUtils.SPIRV;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.*;
@@ -13,9 +11,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
-import static naitsirc98.javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
@@ -28,7 +23,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch14CommandBuffers {
+public class Ch07ImageViews {
 
     private static class HelloTriangleApplication {
 
@@ -125,17 +120,9 @@ public class Ch14CommandBuffers {
 
         private long swapChain;
         private List<Long> swapChainImages;
+        private List<Long> swapChainImageViews;
         private int swapChainImageFormat;
         private VkExtent2D swapChainExtent;
-        private List<Long> swapChainImageViews;
-        private List<Long> swapChainFramebuffers;
-
-        private long renderPass;
-        private long pipelineLayout;
-        private long graphicsPipeline;
-
-        private long commandPool;
-        private List<VkCommandBuffer> commandBuffers;
 
         // ======= METHODS ======= //
 
@@ -172,11 +159,6 @@ public class Ch14CommandBuffers {
             createLogicalDevice();
             createSwapChain();
             createImageViews();
-            createRenderPass();
-            createGraphicsPipeline();
-            createFramebuffers();
-            createCommandPool();
-            createCommandBuffers();
         }
 
         private void mainLoop() {
@@ -188,16 +170,6 @@ public class Ch14CommandBuffers {
         }
 
         private void cleanup() {
-
-            vkDestroyCommandPool(device, commandPool, null);
-
-            swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
-
-            vkDestroyPipeline(device, graphicsPipeline, null);
-
-            vkDestroyPipelineLayout(device, pipelineLayout, null);
-
-            vkDestroyRenderPass(device, renderPass, null);
 
             swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
 
@@ -498,321 +470,6 @@ public class Ch14CommandBuffers {
                     swapChainImageViews.add(pImageView.get(0));
                 }
 
-            }
-        }
-
-        private void createRenderPass() {
-
-            try(MemoryStack stack = stackPush()) {
-
-                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
-                colorAttachment.format(swapChainImageFormat);
-                colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
-                colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
-                colorAttachment.storeOp(VK_ATTACHMENT_STORE_OP_STORE);
-                colorAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-                colorAttachment.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
-                colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-                colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
-                colorAttachmentRef.attachment(0);
-                colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-                VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
-                subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
-                subpass.colorAttachmentCount(1);
-                subpass.pColorAttachments(colorAttachmentRef);
-
-                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
-                renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
-                renderPassInfo.pAttachments(colorAttachment);
-                renderPassInfo.pSubpasses(subpass);
-
-                LongBuffer pRenderPass = stack.mallocLong(1);
-
-                if(vkCreateRenderPass(device, renderPassInfo, null, pRenderPass) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to create render pass");
-                }
-
-                renderPass = pRenderPass.get(0);
-            }
-        }
-
-        private void createGraphicsPipeline() {
-
-            try(MemoryStack stack = stackPush()) {
-
-                // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
-                // Check ShaderSPIRVUtils class to see how it can be done
-                SPIRV vertShaderSPIRV = compileShaderFile("shaders/Ch09_shader_base.vert", VERTEX_SHADER);
-                SPIRV fragShaderSPIRV = compileShaderFile("shaders/Ch09_shader_base.frag", FRAGMENT_SHADER);
-
-                long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
-                long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
-
-                ByteBuffer entryPoint = stack.UTF8("main");
-
-                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.callocStack(2, stack);
-
-                VkPipelineShaderStageCreateInfo vertShaderStageInfo = shaderStages.get(0);
-
-                vertShaderStageInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
-                vertShaderStageInfo.stage(VK_SHADER_STAGE_VERTEX_BIT);
-                vertShaderStageInfo.module(vertShaderModule);
-                vertShaderStageInfo.pName(entryPoint);
-
-                VkPipelineShaderStageCreateInfo fragShaderStageInfo = shaderStages.get(1);
-
-                fragShaderStageInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
-                fragShaderStageInfo.stage(VK_SHADER_STAGE_FRAGMENT_BIT);
-                fragShaderStageInfo.module(fragShaderModule);
-                fragShaderStageInfo.pName(entryPoint);
-
-                // ===> VERTEX STAGE <===
-
-                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
-                vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
-
-                // ===> ASSEMBLY STAGE <===
-
-                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.callocStack(stack);
-                inputAssembly.sType(VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO);
-                inputAssembly.topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-                inputAssembly.primitiveRestartEnable(false);
-
-                // ===> VIEWPORT & SCISSOR
-
-                VkViewport.Buffer viewport = VkViewport.callocStack(1, stack);
-                viewport.x(0.0f);
-                viewport.y(0.0f);
-                viewport.width(swapChainExtent.width());
-                viewport.height(swapChainExtent.height());
-                viewport.minDepth(0.0f);
-                viewport.maxDepth(1.0f);
-
-                VkRect2D.Buffer scissor = VkRect2D.callocStack(1, stack);
-                scissor.offset(VkOffset2D.callocStack(stack).set(0, 0));
-                scissor.extent(swapChainExtent);
-
-                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.callocStack(stack);
-                viewportState.sType(VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO);
-                viewportState.pViewports(viewport);
-                viewportState.pScissors(scissor);
-
-                // ===> RASTERIZATION STAGE <===
-
-                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.callocStack(stack);
-                rasterizer.sType(VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO);
-                rasterizer.depthClampEnable(false);
-                rasterizer.rasterizerDiscardEnable(false);
-                rasterizer.polygonMode(VK_POLYGON_MODE_FILL);
-                rasterizer.lineWidth(1.0f);
-                rasterizer.cullMode(VK_CULL_MODE_BACK_BIT);
-                rasterizer.frontFace(VK_FRONT_FACE_CLOCKWISE);
-                rasterizer.depthBiasEnable(false);
-
-                // ===> MULTISAMPLING <===
-
-                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.callocStack(stack);
-                multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
-                multisampling.sampleShadingEnable(false);
-                multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
-
-                // ===> COLOR BLENDING <===
-
-                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.callocStack(1, stack);
-                colorBlendAttachment.colorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
-                colorBlendAttachment.blendEnable(false);
-
-                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.callocStack(stack);
-                colorBlending.sType(VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);
-                colorBlending.logicOpEnable(false);
-                colorBlending.logicOp(VK_LOGIC_OP_COPY);
-                colorBlending.pAttachments(colorBlendAttachment);
-                colorBlending.blendConstants(stack.floats(0.0f, 0.0f, 0.0f, 0.0f));
-
-                // ===> PIPELINE LAYOUT CREATION <===
-
-                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
-                pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
-
-                LongBuffer pPipelineLayout = stack.longs(VK_NULL_HANDLE);
-
-                if(vkCreatePipelineLayout(device, pipelineLayoutInfo, null, pPipelineLayout) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to create pipeline layout");
-                }
-
-                pipelineLayout = pPipelineLayout.get(0);
-
-                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.callocStack(1, stack);
-                pipelineInfo.sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
-                pipelineInfo.pStages(shaderStages);
-                pipelineInfo.pVertexInputState(vertexInputInfo);
-                pipelineInfo.pInputAssemblyState(inputAssembly);
-                pipelineInfo.pViewportState(viewportState);
-                pipelineInfo.pRasterizationState(rasterizer);
-                pipelineInfo.pMultisampleState(multisampling);
-                pipelineInfo.pColorBlendState(colorBlending);
-                pipelineInfo.layout(pipelineLayout);
-                pipelineInfo.renderPass(renderPass);
-                pipelineInfo.subpass(0);
-                pipelineInfo.basePipelineHandle(VK_NULL_HANDLE);
-                pipelineInfo.basePipelineIndex(-1);
-
-                LongBuffer pGraphicsPipeline = stack.mallocLong(1);
-
-                if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, pipelineInfo, null, pGraphicsPipeline) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to create graphics pipeline");
-                }
-
-                graphicsPipeline = pGraphicsPipeline.get(0);
-
-                // ===> RELEASE RESOURCES <===
-
-                vkDestroyShaderModule(device, vertShaderModule, null);
-                vkDestroyShaderModule(device, fragShaderModule, null);
-
-                vertShaderSPIRV.free();
-                fragShaderSPIRV.free();
-            }
-        }
-
-        private void createFramebuffers() {
-
-            swapChainFramebuffers = new ArrayList<>(swapChainImageViews.size());
-
-            try(MemoryStack stack = stackPush()) {
-
-                LongBuffer attachments = stack.mallocLong(1);
-                LongBuffer pFramebuffer = stack.mallocLong(1);
-
-                // Lets allocate the create info struct once and just update the pAttachments field each iteration
-                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.callocStack(stack);
-                framebufferInfo.sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
-                framebufferInfo.renderPass(renderPass);
-                framebufferInfo.width(swapChainExtent.width());
-                framebufferInfo.height(swapChainExtent.height());
-                framebufferInfo.layers(1);
-
-                for(long imageView : swapChainImageViews) {
-
-                    attachments.put(0, imageView);
-
-                    framebufferInfo.pAttachments(attachments);
-
-                    if(vkCreateFramebuffer(device, framebufferInfo, null, pFramebuffer) != VK_SUCCESS) {
-                        throw new RuntimeException("Failed to create framebuffer");
-                    }
-
-                    swapChainFramebuffers.add(pFramebuffer.get(0));
-                }
-            }
-        }
-
-        private void createCommandPool() {
-
-            try(MemoryStack stack = stackPush()) {
-
-                QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
-
-                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.callocStack(stack);
-                poolInfo.sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
-                poolInfo.queueFamilyIndex(queueFamilyIndices.graphicsFamily);
-
-                LongBuffer pCommandPool = stack.mallocLong(1);
-
-                if (vkCreateCommandPool(device, poolInfo, null, pCommandPool) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to create command pool");
-                }
-
-                commandPool = pCommandPool.get(0);
-            }
-        }
-
-        private void createCommandBuffers() {
-
-            final int commandBuffersCount = swapChainFramebuffers.size();
-
-            commandBuffers = new ArrayList<>(commandBuffersCount);
-
-            try(MemoryStack stack = stackPush()) {
-
-                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
-                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
-                allocInfo.commandPool(commandPool);
-                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-                allocInfo.commandBufferCount(commandBuffersCount);
-
-                PointerBuffer pCommandBuffers = stack.mallocPointer(commandBuffersCount);
-
-                if(vkAllocateCommandBuffers(device, allocInfo, pCommandBuffers) != VK_SUCCESS) {
-                    throw new RuntimeException("Fialed to allocate command buffers");
-                }
-
-                for(int i = 0;i < commandBuffersCount;i++) {
-                    commandBuffers.add(new VkCommandBuffer(pCommandBuffers.get(i), device));
-                }
-
-                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
-                beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
-
-                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.callocStack(stack);
-                renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
-                renderPassInfo.renderPass(renderPass);
-                VkRect2D renderArea = VkRect2D.callocStack(stack);
-                renderArea.offset(VkOffset2D.callocStack(stack).set(0, 0));
-                renderArea.extent(swapChainExtent);
-                renderPassInfo.renderArea(renderArea);
-                VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
-                clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
-                renderPassInfo.pClearValues(clearValues);
-
-                for(int i = 0;i < commandBuffersCount;i++) {
-
-                    VkCommandBuffer commandBuffer = commandBuffers.get(i);
-
-                    if(vkBeginCommandBuffer(commandBuffer, beginInfo) != VK_SUCCESS) {
-                        throw new RuntimeException("Failed to begin recording command buffer");
-                    }
-
-                    renderPassInfo.framebuffer(swapChainFramebuffers.get(i));
-
-
-                    vkCmdBeginRenderPass(commandBuffer, renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-                    {
-                        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-                        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-                    }
-                    vkCmdEndRenderPass(commandBuffer);
-
-
-                    if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-                        throw new RuntimeException("Failed to record command buffer");
-                    }
-
-                }
-
-            }
-        }
-
-        private long createShaderModule(ByteBuffer spirvCode) {
-
-            try(MemoryStack stack = stackPush()) {
-
-                VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.callocStack(stack);
-
-                createInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
-                createInfo.pCode(spirvCode);
-
-                LongBuffer pShaderModule = stack.mallocLong(1);
-
-                if(vkCreateShaderModule(device, createInfo, null, pShaderModule) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to create shader module");
-                }
-
-                return pShaderModule.get(0);
             }
         }
 

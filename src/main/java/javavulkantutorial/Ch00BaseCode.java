@@ -1,4 +1,4 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;

@@ -1,4 +1,4 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -6,9 +6,9 @@ import org.lwjgl.vulkan.*;
 
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.lwjgl.glfw.GLFW.*;
@@ -19,15 +19,13 @@ import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
-import static org.lwjgl.vulkan.KHRSurface.*;
-import static org.lwjgl.vulkan.KHRSwapchain.*;
+import static org.lwjgl.vulkan.KHRSurface.vkDestroySurfaceKHR;
+import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch06SwapChainCreation {
+public class Ch05WindowSurface {
 
     private static class HelloTriangleApplication {
-
-        private static final int UINT32_MAX = 0xFFFFFFFF;
 
         private static final int WIDTH = 800;
         private static final int HEIGHT = 600;
@@ -44,11 +42,6 @@ public class Ch06SwapChainCreation {
                 VALIDATION_LAYERS = null;
             }
         }
-
-        private static final Set<String> DEVICE_EXTENSIONS = Stream.of(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-                .collect(toSet());
-
-
 
         private static int debugCallback(int messageSeverity, int messageType, long pCallbackData, long pUserData) {
 
@@ -90,38 +83,18 @@ public class Ch06SwapChainCreation {
             public int[] unique() {
                 return IntStream.of(graphicsFamily, presentFamily).distinct().toArray();
             }
-
-            public int[] array() {
-                return new int[] {graphicsFamily, presentFamily};
-            }
-        }
-
-        private class SwapChainSupportDetails {
-
-            private VkSurfaceCapabilitiesKHR capabilities;
-            private VkSurfaceFormatKHR.Buffer formats;
-            private IntBuffer presentModes;
-
         }
 
         // ======= FIELDS ======= //
 
         private long window;
-
         private VkInstance instance;
         private long debugMessenger;
         private long surface;
-
         private VkPhysicalDevice physicalDevice;
         private VkDevice device;
-
         private VkQueue graphicsQueue;
         private VkQueue presentQueue;
-
-        private long swapChain;
-        private List<Long> swapChainImages;
-        private int swapChainImageFormat;
-        private VkExtent2D swapChainExtent;
 
         // ======= METHODS ======= //
 
@@ -156,7 +129,6 @@ public class Ch06SwapChainCreation {
             createSurface();
             pickPhysicalDevice();
             createLogicalDevice();
-            createSwapChain();
         }
 
         private void mainLoop() {
@@ -168,8 +140,6 @@ public class Ch06SwapChainCreation {
         }
 
         private void cleanup() {
-
-            vkDestroySwapchainKHR(device, swapChain, null);
 
             vkDestroyDevice(device, null);
 
@@ -214,7 +184,7 @@ public class Ch06SwapChainCreation {
 
                 if(ENABLE_VALIDATION_LAYERS) {
 
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer());
 
                     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
                     populateDebugMessengerCreateInfo(debugCreateInfo);
@@ -337,10 +307,8 @@ public class Ch06SwapChainCreation {
 
                 createInfo.pEnabledFeatures(deviceFeatures);
 
-                createInfo.ppEnabledExtensionNames(asPointerBuffer(DEVICE_EXTENSIONS));
-
                 if(ENABLE_VALIDATION_LAYERS) {
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer());
                 }
 
                 PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
@@ -361,171 +329,11 @@ public class Ch06SwapChainCreation {
             }
         }
 
-        private void createSwapChain() {
-
-            try(MemoryStack stack = stackPush()) {
-
-                SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice, stack);
-
-                VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-                int presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-                VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-                IntBuffer imageCount = stack.ints(swapChainSupport.capabilities.minImageCount() + 1);
-
-                if(swapChainSupport.capabilities.maxImageCount() > 0 && imageCount.get(0) > swapChainSupport.capabilities.maxImageCount()) {
-                    imageCount.put(0, swapChainSupport.capabilities.maxImageCount());
-                }
-
-                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.callocStack(stack);
-
-                createInfo.sType(VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
-                createInfo.surface(surface);
-
-                // Image settings
-                createInfo.minImageCount(imageCount.get(0));
-                createInfo.imageFormat(surfaceFormat.format());
-                createInfo.imageColorSpace(surfaceFormat.colorSpace());
-                createInfo.imageExtent(extent);
-                createInfo.imageArrayLayers(1);
-                createInfo.imageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-
-                QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-
-                if(!indices.graphicsFamily.equals(indices.presentFamily)) {
-                    createInfo.imageSharingMode(VK_SHARING_MODE_CONCURRENT);
-                    createInfo.pQueueFamilyIndices(stack.ints(indices.graphicsFamily, indices.presentFamily));
-                } else {
-                    createInfo.imageSharingMode(VK_SHARING_MODE_EXCLUSIVE);
-                }
-
-                createInfo.preTransform(swapChainSupport.capabilities.currentTransform());
-                createInfo.compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
-                createInfo.presentMode(presentMode);
-                createInfo.clipped(true);
-
-                createInfo.oldSwapchain(VK_NULL_HANDLE);
-
-                LongBuffer pSwapChain = stack.longs(VK_NULL_HANDLE);
-
-                if(vkCreateSwapchainKHR(device, createInfo, null, pSwapChain) != VK_SUCCESS) {
-                    throw new RuntimeException("Failed to create swap chain");
-                }
-
-                swapChain = pSwapChain.get(0);
-
-                vkGetSwapchainImagesKHR(device, swapChain, imageCount, null);
-
-                LongBuffer pSwapchainImages = stack.mallocLong(imageCount.get(0));
-
-                vkGetSwapchainImagesKHR(device, swapChain, imageCount, pSwapchainImages);
-
-                swapChainImages = new ArrayList<>(imageCount.get(0));
-
-                for(int i = 0;i < pSwapchainImages.capacity();i++) {
-                    swapChainImages.add(pSwapchainImages.get(i));
-                }
-
-                swapChainImageFormat = surfaceFormat.format();
-                swapChainExtent = VkExtent2D.create().set(extent);
-            }
-        }
-
-        private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
-            return availableFormats.stream()
-                    .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
-                    .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-                    .findAny()
-                    .orElse(availableFormats.get(0));
-        }
-
-        private int chooseSwapPresentMode(IntBuffer availablePresentModes) {
-
-            for(int i = 0;i < availablePresentModes.capacity();i++) {
-                if(availablePresentModes.get(i) == VK_PRESENT_MODE_MAILBOX_KHR) {
-                    return availablePresentModes.get(i);
-                }
-            }
-
-            return VK_PRESENT_MODE_FIFO_KHR;
-        }
-
-        private VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR capabilities) {
-
-            if(capabilities.currentExtent().width() != UINT32_MAX) {
-                return capabilities.currentExtent();
-            }
-
-            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(WIDTH, HEIGHT);
-
-            VkExtent2D minExtent = capabilities.minImageExtent();
-            VkExtent2D maxExtent = capabilities.maxImageExtent();
-
-            actualExtent.width(clamp(minExtent.width(), maxExtent.width(), actualExtent.width()));
-            actualExtent.height(clamp(minExtent.height(), maxExtent.height(), actualExtent.height()));
-
-            return actualExtent;
-        }
-
-        private int clamp(int min, int max, int value) {
-            return Math.max(min, Math.min(max, value));
-        }
-
         private boolean isDeviceSuitable(VkPhysicalDevice device) {
 
             QueueFamilyIndices indices = findQueueFamilies(device);
 
-            boolean extensionsSupported = checkDeviceExtensionSupport(device);
-            boolean swapChainAdequate = false;
-
-            if(extensionsSupported) {
-                try(MemoryStack stack = stackPush()) {
-                    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, stack);
-                    swapChainAdequate = swapChainSupport.formats.hasRemaining() && swapChainSupport.presentModes.hasRemaining();
-                }
-            }
-
-            return indices.isComplete() && extensionsSupported && swapChainAdequate;
-        }
-
-        private boolean checkDeviceExtensionSupport(VkPhysicalDevice device) {
-
-            try(MemoryStack stack = stackPush()) {
-
-                IntBuffer extensionCount = stack.ints(0);
-
-                vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, null);
-
-                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.mallocStack(extensionCount.get(0), stack);
-
-                return availableExtensions.stream().collect(toSet()).containsAll(DEVICE_EXTENSIONS);
-            }
-        }
-
-        private SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, MemoryStack stack) {
-
-            SwapChainSupportDetails details = new SwapChainSupportDetails();
-
-            details.capabilities = VkSurfaceCapabilitiesKHR.mallocStack(stack);
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, details.capabilities);
-
-            IntBuffer count = stack.ints(0);
-
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, null);
-
-            if(count.get(0) != 0) {
-                details.formats = VkSurfaceFormatKHR.mallocStack(count.get(0), stack);
-                vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, details.formats);
-            }
-
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device,surface, count, null);
-
-            if(count.get(0) != 0) {
-                details.presentModes = stack.mallocInt(count.get(0));
-                vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, count, details.presentModes);
-            }
-
-            return details;
+            return indices.isComplete();
         }
 
         private QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
@@ -561,13 +369,13 @@ public class Ch06SwapChainCreation {
             }
         }
 
-        private PointerBuffer asPointerBuffer(Collection<String> collection) {
+        private PointerBuffer validationLayersAsPointerBuffer() {
 
             MemoryStack stack = stackGet();
 
-            PointerBuffer buffer = stack.mallocPointer(collection.size());
+            PointerBuffer buffer = stack.mallocPointer(VALIDATION_LAYERS.size());
 
-            collection.stream()
+            VALIDATION_LAYERS.stream()
                     .map(stack::UTF8)
                     .forEach(buffer::put);
 

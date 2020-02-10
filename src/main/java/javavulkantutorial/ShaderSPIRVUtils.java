@@ -1,4 +1,4 @@
-package naitsirc98.javavulkantutorial;
+package javavulkantutorial;
 
 import org.lwjgl.system.NativeResource;
 
