@@ -1018,6 +1018,7 @@ public class Ch17VertexInput {
                 vkResetFences(device, thisFrame.pFence());
 
                 if((vkResult = vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence())) != VK_SUCCESS) {
+                    vkResetFences(device, thisFrame.pFence());
                     throw new RuntimeException("Failed to submit draw command buffer: " + vkResult);
                 }
 
