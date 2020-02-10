@@ -167,13 +167,12 @@ public class Ch18VertexBuffer {
 
         }
 
-        private static final List<Vertex> VERTICES = Arrays.asList(
-
-                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 1.0f, 1.0f)),
+        private static final Vertex[] VERTICES = {
+                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
                 new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
                 new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
+        };
 
-        );
 
         // ======= FIELDS ======= //
 
@@ -884,7 +883,7 @@ public class Ch18VertexBuffer {
 
                 VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.callocStack(stack);
                 bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
-                bufferInfo.size(Vertex.SIZEOF * VERTICES.size());
+                bufferInfo.size(Vertex.SIZEOF * VERTICES.length);
                 bufferInfo.usage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
                 bufferInfo.sharingMode(VK_SHARING_MODE_EXCLUSIVE);
 
@@ -923,19 +922,15 @@ public class Ch18VertexBuffer {
             }
         }
 
-        private void memcpy(List<Vertex> vertices, ByteBuffer buffer) {
-
-            vertices.forEach(vertex -> {
-
+        private void memcpy(Vertex[] vertices, ByteBuffer buffer) {
+            for(Vertex vertex : vertices) {
                 buffer.putFloat(vertex.pos.x());
                 buffer.putFloat(vertex.pos.y());
 
                 buffer.putFloat(vertex.color.x());
                 buffer.putFloat(vertex.color.y());
                 buffer.putFloat(vertex.color.z());
-            });
-
-            buffer.rewind();
+            }
         }
 
         private int findMemoryType(int typeFilter, int properties) {
@@ -1012,7 +1007,7 @@ public class Ch18VertexBuffer {
                         LongBuffer offsets = stack.longs(0);
                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
 
-                        vkCmdDraw(commandBuffer, VERTICES.size(), 1, 0, 0);
+                        vkCmdDraw(commandBuffer, VERTICES.length, 1, 0, 0);
                     }
                     vkCmdEndRenderPass(commandBuffer);
 

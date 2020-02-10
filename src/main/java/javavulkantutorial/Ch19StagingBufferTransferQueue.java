@@ -181,13 +181,11 @@ public class Ch19StagingBufferTransferQueue {
 
         }
 
-        private static final List<Vertex> VERTICES = Arrays.asList(
-
+        private static final Vertex[] VERTICES = {
                 new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
                 new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
                 new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
-
-        );
+        };
 
         // ======= FIELDS ======= //
 
@@ -933,7 +931,7 @@ public class Ch19StagingBufferTransferQueue {
 
             try(MemoryStack stack = stackPush()) {
 
-                long bufferSize = Vertex.SIZEOF * VERTICES.size();
+                long bufferSize = Vertex.SIZEOF * VERTICES.length;
 
                 LongBuffer pBuffer = stack.mallocLong(1);
                 LongBuffer pBufferMemory = stack.mallocLong(1);
@@ -1032,19 +1030,15 @@ public class Ch19StagingBufferTransferQueue {
             }
         }
 
-        private void memcpy(List<Vertex> vertices, ByteBuffer buffer) {
-
-            vertices.forEach(vertex -> {
-
+        private void memcpy(Vertex[] vertices, ByteBuffer buffer) {
+            for(Vertex vertex : vertices) {
                 buffer.putFloat(vertex.pos.x());
                 buffer.putFloat(vertex.pos.y());
 
                 buffer.putFloat(vertex.color.x());
                 buffer.putFloat(vertex.color.y());
                 buffer.putFloat(vertex.color.z());
-            });
-
-            buffer.rewind();
+            }
         }
 
         private int findMemoryType(int typeFilter, int properties) {
@@ -1121,7 +1115,7 @@ public class Ch19StagingBufferTransferQueue {
                         LongBuffer offsets = stack.longs(0);
                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
 
-                        vkCmdDraw(commandBuffer, VERTICES.size(), 1, 0, 0);
+                        vkCmdDraw(commandBuffer, VERTICES.length, 1, 0, 0);
                     }
                     vkCmdEndRenderPass(commandBuffer);
 

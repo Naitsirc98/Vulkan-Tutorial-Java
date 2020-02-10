@@ -33,7 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch17VertexInput {
+public class Ch20IndexBuffer {
 
     private static class HelloTriangleApplication {
 
@@ -168,11 +168,15 @@ public class Ch17VertexInput {
         }
 
         private static final Vertex[] VERTICES = {
-                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
+                new Vertex(new Vector2f(-0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
+                new Vertex(new Vector2f(0.5f, -0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
+                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f)),
+                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(1.0f, 1.0f, 1.0f))
         };
 
+        private static final /*uint16_t*/ short[] INDICES = {
+                0, 1, 2, 2, 3, 0
+        };
 
         // ======= FIELDS ======= //
 
@@ -200,6 +204,13 @@ public class Ch17VertexInput {
         private long graphicsPipeline;
 
         private long commandPool;
+
+        private long vertexBuffer;
+        private long vertexBufferMemory;
+
+        private long indexBuffer;
+        private long indexBufferMemory;
+
         private List<VkCommandBuffer> commandBuffers;
 
         private List<Frame> inFlightFrames;
@@ -256,6 +267,8 @@ public class Ch17VertexInput {
             pickPhysicalDevice();
             createLogicalDevice();
             createCommandPool();
+            createVertexBuffer();
+            createIndexBuffer();
             createSwapChainObjects();
             createSyncObjects();
         }
@@ -291,6 +304,12 @@ public class Ch17VertexInput {
         private void cleanup() {
 
             cleanupSwapChain();
+
+            vkDestroyBuffer(device, indexBuffer, null);
+            vkFreeMemory(device, indexBufferMemory, null);
+
+            vkDestroyBuffer(device, vertexBuffer, null);
+            vkFreeMemory(device, vertexBufferMemory, null);
 
             inFlightFrames.forEach(frame -> {
 
@@ -869,6 +888,192 @@ public class Ch17VertexInput {
             }
         }
 
+        private void createVertexBuffer() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                long bufferSize = Vertex.SIZEOF * VERTICES.length;
+
+                LongBuffer pBuffer = stack.mallocLong(1);
+                LongBuffer pBufferMemory = stack.mallocLong(1);
+                createBuffer(bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        pBuffer,
+                        pBufferMemory);
+
+                long stagingBuffer = pBuffer.get(0);
+                long stagingBufferMemory = pBufferMemory.get(0);
+
+                PointerBuffer data = stack.mallocPointer(1);
+
+                vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
+                {
+                    memcpy(VERTICES, data.getByteBuffer(0, (int) bufferSize));
+                }
+                vkUnmapMemory(device, stagingBufferMemory);
+
+                createBuffer(bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                        VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                        pBuffer,
+                        pBufferMemory);
+
+                vertexBuffer = pBuffer.get(0);
+                vertexBufferMemory = pBufferMemory.get(0);
+
+                copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+                vkDestroyBuffer(device, stagingBuffer, null);
+                vkFreeMemory(device, stagingBufferMemory, null);
+            }
+        }
+
+        private void createIndexBuffer() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                long bufferSize = Short.BYTES * INDICES.length;
+
+                LongBuffer pBuffer = stack.mallocLong(1);
+                LongBuffer pBufferMemory = stack.mallocLong(1);
+                createBuffer(bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        pBuffer,
+                        pBufferMemory);
+
+                long stagingBuffer = pBuffer.get(0);
+                long stagingBufferMemory = pBufferMemory.get(0);
+
+                PointerBuffer data = stack.mallocPointer(1);
+
+                vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
+                {
+                    memcpy(INDICES, data.getByteBuffer(0, (int) bufferSize));
+                }
+                vkUnmapMemory(device, stagingBufferMemory);
+
+                createBuffer(bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                        VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                        pBuffer,
+                        pBufferMemory);
+
+                indexBuffer = pBuffer.get(0);
+                indexBufferMemory = pBufferMemory.get(0);
+
+                copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+                vkDestroyBuffer(device, stagingBuffer, null);
+                vkFreeMemory(device, stagingBufferMemory, null);
+            }
+        }
+
+        private void createBuffer(long size, int usage, int properties, LongBuffer pBuffer, LongBuffer pBufferMemory) {
+
+            try(MemoryStack stack = stackPush()) {
+
+                VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.callocStack(stack);
+                bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+                bufferInfo.size(size);
+                bufferInfo.usage(usage);
+                bufferInfo.sharingMode(VK_SHARING_MODE_EXCLUSIVE);
+
+                if(vkCreateBuffer(device, bufferInfo, null, pBuffer) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to create vertex buffer");
+                }
+
+                VkMemoryRequirements memRequirements = VkMemoryRequirements.mallocStack(stack);
+                vkGetBufferMemoryRequirements(device, pBuffer.get(0), memRequirements);
+
+                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
+                allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+                allocInfo.allocationSize(memRequirements.size());
+                allocInfo.memoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits(), properties));
+
+                if(vkAllocateMemory(device, allocInfo, null, pBufferMemory) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to allocate vertex buffer memory");
+                }
+
+                vkBindBufferMemory(device, pBuffer.get(0), pBufferMemory.get(0), 0);
+            }
+        }
+
+        private void copyBuffer(long srcBuffer, long dstBuffer, long size) {
+
+            try(MemoryStack stack = stackPush()) {
+
+                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
+                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+                allocInfo.commandPool(commandPool);
+                allocInfo.commandBufferCount(1);
+
+                PointerBuffer pCommandBuffer = stack.mallocPointer(1);
+                vkAllocateCommandBuffers(device, allocInfo, pCommandBuffer);
+                VkCommandBuffer commandBuffer = new VkCommandBuffer(pCommandBuffer.get(0), device);
+
+                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
+                beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+                beginInfo.flags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+                vkBeginCommandBuffer(commandBuffer, beginInfo);
+                {
+                    VkBufferCopy.Buffer copyRegion = VkBufferCopy.callocStack(1, stack);
+                    copyRegion.size(size);
+                    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, copyRegion);
+                }
+                vkEndCommandBuffer(commandBuffer);
+
+                VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
+                submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
+                submitInfo.pCommandBuffers(pCommandBuffer);
+
+                if(vkQueueSubmit(graphicsQueue, submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to submit copy command buffer");
+                }
+
+                vkQueueWaitIdle(graphicsQueue);
+
+                vkFreeCommandBuffers(device, commandPool, pCommandBuffer);
+            }
+        }
+
+        private void memcpy(Vertex[] vertices, ByteBuffer buffer) {
+            for(Vertex vertex : vertices) {
+                buffer.putFloat(vertex.pos.x());
+                buffer.putFloat(vertex.pos.y());
+
+                buffer.putFloat(vertex.color.x());
+                buffer.putFloat(vertex.color.y());
+                buffer.putFloat(vertex.color.z());
+            }
+        }
+
+        private void memcpy(short[] indices, ByteBuffer buffer) {
+
+            for(short index : indices) {
+                buffer.putShort(index);
+            }
+
+            buffer.rewind();
+        }
+
+        private int findMemoryType(int typeFilter, int properties) {
+
+            VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
+            vkGetPhysicalDeviceMemoryProperties(physicalDevice, memProperties);
+
+            for(int i = 0;i < memProperties.memoryTypeCount();i++) {
+                if((typeFilter & (1 << i)) != 0 && (memProperties.memoryTypes(i).propertyFlags() & properties) == properties) {
+                    return i;
+                }
+            }
+
+            throw new RuntimeException("Failed to find suitable memory type");
+        }
+
         private void createCommandBuffers() {
 
             final int commandBuffersCount = swapChainFramebuffers.size();
@@ -925,7 +1130,13 @@ public class Ch17VertexInput {
                     {
                         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-                        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+                        LongBuffer vertexBuffers = stack.longs(vertexBuffer);
+                        LongBuffer offsets = stack.longs(0);
+                        vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
+
+                        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+                        vkCmdDrawIndexed(commandBuffer, INDICES.length, 1, 0, 0, 0);
                     }
                     vkCmdEndRenderPass(commandBuffer);
 
