@@ -690,8 +690,8 @@ public class Ch18VertexBuffer {
 
                 // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
                 // Check ShaderSPIRVUtils class to see how it can be done
-                SPIRV vertShaderSPIRV = compileShaderFile("shaders/Ch17ShaderVertexBuffer.vert", VERTEX_SHADER);
-                SPIRV fragShaderSPIRV = compileShaderFile("shaders/Ch17ShaderVertexBuffer.frag", FRAGMENT_SHADER);
+                SPIRV vertShaderSPIRV = compileShaderFile("shaders/17_shader_vertexbuffer.vert", VERTEX_SHADER);
+                SPIRV fragShaderSPIRV = compileShaderFile("shaders/17_shader_vertexbuffer.frag", FRAGMENT_SHADER);
 
                 long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                 long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
