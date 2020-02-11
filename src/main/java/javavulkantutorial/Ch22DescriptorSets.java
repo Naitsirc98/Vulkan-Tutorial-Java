@@ -16,6 +16,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
+import static javavulkantutorial.AlignmentUtils.alignas;
+import static javavulkantutorial.AlignmentUtils.alignof;
 import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
 import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
 import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
@@ -26,12 +28,13 @@ import static org.lwjgl.system.Configuration.DEBUG;
 import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.memSet;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch21DescriptorLayout {
+public class Ch22DescriptorSets {
 
     private static class HelloTriangleApplication {
 
@@ -213,7 +216,9 @@ public class Ch21DescriptorLayout {
         private List<Long> swapChainFramebuffers;
 
         private long renderPass;
+        private long descriptorPool;
         private long descriptorSetLayout;
+        private List<Long> descriptorSets;
         private long pipelineLayout;
         private long graphicsPipeline;
 
@@ -305,6 +310,8 @@ public class Ch21DescriptorLayout {
             uniformBuffers.forEach(ubo -> vkDestroyBuffer(device, ubo, null));
             uniformBuffersMemory.forEach(uboMemory -> vkFreeMemory(device, uboMemory, null));
 
+            vkDestroyDescriptorPool(device, descriptorPool, null);
+
             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
 
             vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
@@ -384,6 +391,8 @@ public class Ch21DescriptorLayout {
             createGraphicsPipeline();
             createFramebuffers();
             createUniformBuffers();
+            createDescriptorPool();
+            createDescriptorSets();
             createCommandBuffers();
         }
 
@@ -813,7 +822,7 @@ public class Ch21DescriptorLayout {
                 rasterizer.polygonMode(VK_POLYGON_MODE_FILL);
                 rasterizer.lineWidth(1.0f);
                 rasterizer.cullMode(VK_CULL_MODE_BACK_BIT);
-                rasterizer.frontFace(VK_FRONT_FACE_CLOCKWISE);
+                rasterizer.frontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE);
                 rasterizer.depthBiasEnable(false);
 
                 // ===> MULTISAMPLING <===
@@ -1041,6 +1050,79 @@ public class Ch21DescriptorLayout {
             }
         }
 
+
+        private void createDescriptorPool() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                VkDescriptorPoolSize.Buffer poolSize = VkDescriptorPoolSize.callocStack(1, stack);
+                poolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+                poolSize.descriptorCount(swapChainImages.size());
+
+                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
+                poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+                poolInfo.pPoolSizes(poolSize);
+                poolInfo.maxSets(swapChainImages.size());
+
+                LongBuffer pDescriptorPool = stack.mallocLong(1);
+
+                if(vkCreateDescriptorPool(device, poolInfo, null, pDescriptorPool) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to create descriptor pool");
+                }
+
+                descriptorPool = pDescriptorPool.get(0);
+            }
+        }
+
+        private void createDescriptorSets() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                LongBuffer layouts = stack.mallocLong(swapChainImages.size());
+                for(int i = 0;i < layouts.capacity();i++) {
+                    layouts.put(i, descriptorSetLayout);
+                }
+
+                VkDescriptorSetAllocateInfo allocInfo = VkDescriptorSetAllocateInfo.callocStack(stack);
+                allocInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
+                allocInfo.descriptorPool(descriptorPool);
+                allocInfo.pSetLayouts(layouts);
+
+                LongBuffer pDescriptorSets = stack.mallocLong(swapChainImages.size());
+
+                if(vkAllocateDescriptorSets(device, allocInfo, pDescriptorSets) != VK_SUCCESS) {
+                    throw new RuntimeException("Failed to allocate descriptor sets");
+                }
+
+                descriptorSets = new ArrayList<>(pDescriptorSets.capacity());
+
+                VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.callocStack(1, stack);
+                bufferInfo.offset(0);
+                bufferInfo.range(UniformBufferObject.SIZEOF);
+
+                VkWriteDescriptorSet.Buffer descriptorWrite = VkWriteDescriptorSet.callocStack(1, stack);
+                descriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
+                descriptorWrite.dstBinding(0);
+                descriptorWrite.dstArrayElement(0);
+                descriptorWrite.descriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+                descriptorWrite.descriptorCount(1);
+                descriptorWrite.pBufferInfo(bufferInfo);
+
+                for(int i = 0;i < pDescriptorSets.capacity();i++) {
+
+                    long descriptorSet = pDescriptorSets.get(i);
+
+                    bufferInfo.buffer(uniformBuffers.get(i));
+
+                    descriptorWrite.dstSet(descriptorSet);
+
+                    vkUpdateDescriptorSets(device, descriptorWrite, null);
+
+                    descriptorSets.add(descriptorSet);
+                }
+            }
+        }
+
         private void createBuffer(long size, int usage, int properties, LongBuffer pBuffer, LongBuffer pBufferMemory) {
 
             try(MemoryStack stack = stackPush()) {
@@ -1136,8 +1218,8 @@ public class Ch21DescriptorLayout {
             final int mat4Size = 16 * Float.BYTES;
 
             ubo.model.get(0, buffer);
-            ubo.view.get(mat4Size, buffer);
-            ubo.proj.get(mat4Size * 2, buffer);
+            ubo.view.get(alignas(mat4Size, alignof(ubo.view)), buffer);
+            ubo.proj.get(alignas(mat4Size * 2, alignof(ubo.view)), buffer);
         }
 
         private int findMemoryType(int typeFilter, int properties) {
@@ -1215,6 +1297,9 @@ public class Ch21DescriptorLayout {
                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
 
                         vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+                        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                pipelineLayout, 0, stack.longs(descriptorSets.get(i)), null);
 
                         vkCmdDrawIndexed(commandBuffer, INDICES.length, 1, 0, 0, 0);
                     }
