@@ -956,7 +956,7 @@ public class Ch21DescriptorLayout {
 
                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                 {
-                    memcpy(VERTICES, data.getByteBuffer(0, (int) bufferSize));
+                    memcpy(data.getByteBuffer(0, (int) bufferSize), VERTICES);
                 }
                 vkUnmapMemory(device, stagingBufferMemory);
 
@@ -997,7 +997,7 @@ public class Ch21DescriptorLayout {
 
                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                 {
-                    memcpy(INDICES, data.getByteBuffer(0, (int) bufferSize));
+                    memcpy(data.getByteBuffer(0, (int) bufferSize), INDICES);
                 }
                 vkUnmapMemory(device, stagingBufferMemory);
 
@@ -1111,7 +1111,7 @@ public class Ch21DescriptorLayout {
             }
         }
 
-        private void memcpy(Vertex[] vertices, ByteBuffer buffer) {
+        private void memcpy(ByteBuffer buffer, Vertex[] vertices) {
             for(Vertex vertex : vertices) {
                 buffer.putFloat(vertex.pos.x());
                 buffer.putFloat(vertex.pos.y());
@@ -1122,7 +1122,7 @@ public class Ch21DescriptorLayout {
             }
         }
 
-        private void memcpy(short[] indices, ByteBuffer buffer) {
+        private void memcpy(ByteBuffer buffer, short[] indices) {
 
             for(short index : indices) {
                 buffer.putShort(index);
@@ -1131,7 +1131,7 @@ public class Ch21DescriptorLayout {
             buffer.rewind();
         }
 
-        private void memcpy(UniformBufferObject ubo, ByteBuffer buffer) {
+        private void memcpy(ByteBuffer buffer, UniformBufferObject ubo) {
 
             final int mat4Size = 16 * Float.BYTES;
 
@@ -1278,7 +1278,7 @@ public class Ch21DescriptorLayout {
                 PointerBuffer data = stack.mallocPointer(1);
                 vkMapMemory(device, uniformBuffersMemory.get(currentImage), 0, UniformBufferObject.SIZEOF, 0, data);
                 {
-                    memcpy(ubo, data.getByteBuffer(0, UniformBufferObject.SIZEOF));
+                    memcpy(data.getByteBuffer(0, UniformBufferObject.SIZEOF), ubo);
                 }
                 vkUnmapMemory(device, uniformBuffersMemory.get(currentImage));
             }

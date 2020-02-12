@@ -948,7 +948,7 @@ public class Ch19StagingBufferTransferQueue {
 
                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                 {
-                    memcpy(VERTICES, data.getByteBuffer(0, (int) bufferSize));
+                    memcpy(data.getByteBuffer(0, (int) bufferSize), VERTICES);
                 }
                 vkUnmapMemory(device, stagingBufferMemory);
 
@@ -1030,7 +1030,7 @@ public class Ch19StagingBufferTransferQueue {
             }
         }
 
-        private void memcpy(Vertex[] vertices, ByteBuffer buffer) {
+        private void memcpy(ByteBuffer buffer, Vertex[] vertices) {
             for(Vertex vertex : vertices) {
                 buffer.putFloat(vertex.pos.x());
                 buffer.putFloat(vertex.pos.y());

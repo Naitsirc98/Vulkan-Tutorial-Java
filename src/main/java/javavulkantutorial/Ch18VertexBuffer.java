@@ -916,13 +916,13 @@ public class Ch18VertexBuffer {
 
                 vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size(), 0, data);
                 {
-                    memcpy(VERTICES, data.getByteBuffer(0, (int) bufferInfo.size()));
+                    memcpy(data.getByteBuffer(0, (int) bufferInfo.size()), VERTICES);
                 }
                 vkUnmapMemory(device, vertexBufferMemory);
             }
         }
 
-        private void memcpy(Vertex[] vertices, ByteBuffer buffer) {
+        private void memcpy(ByteBuffer buffer, Vertex[] vertices) {
             for(Vertex vertex : vertices) {
                 buffer.putFloat(vertex.pos.x());
                 buffer.putFloat(vertex.pos.y());
