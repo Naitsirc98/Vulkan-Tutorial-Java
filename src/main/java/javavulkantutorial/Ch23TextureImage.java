@@ -982,7 +982,7 @@ public class Ch23TextureImage {
                 PointerBuffer data = stack.mallocPointer(1);
                 vkMapMemory(device, pStagingBufferMemory.get(0), 0, imageSize, 0, data);
                 {
-                    memcpy(pixels, data.getByteBuffer(0), imageSize);
+                    memcpy(data.getByteBuffer(0, (int) imageSize), pixels, imageSize);
                 }
                 vkUnmapMemory(device, pStagingBufferMemory.get(0));
 
@@ -1133,10 +1133,10 @@ public class Ch23TextureImage {
             }
         }
 
-        private void memcpy(ByteBuffer src, ByteBuffer dst, long size) {
+        private void memcpy(ByteBuffer dst, ByteBuffer src, long size) {
             src.limit((int)size);
             dst.put(src);
-            src.limit(src.capacity());
+            src.limit(src.capacity()).rewind();
         }
 
         private void createVertexBuffer() {
