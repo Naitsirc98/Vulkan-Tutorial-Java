@@ -740,11 +740,11 @@ public class Ch25TextureMapping {
                 uboLayoutBinding.stageFlags(VK_SHADER_STAGE_VERTEX_BIT);
 
                 VkDescriptorSetLayoutBinding samplerLayoutBinding = bindings.get(1);
-                uboLayoutBinding.binding(1);
-                uboLayoutBinding.descriptorCount(1);
-                uboLayoutBinding.descriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-                uboLayoutBinding.pImmutableSamplers(null);
-                uboLayoutBinding.stageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
+                samplerLayoutBinding.binding(1);
+                samplerLayoutBinding.descriptorCount(1);
+                samplerLayoutBinding.descriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                samplerLayoutBinding.pImmutableSamplers(null);
+                samplerLayoutBinding.stageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
 
                 VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.callocStack(stack);
                 layoutInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
@@ -1319,8 +1319,8 @@ public class Ch25TextureMapping {
                 uniformBufferPoolSize.descriptorCount(swapChainImages.size());
 
                 VkDescriptorPoolSize textureSamplerPoolSize = poolSizes.get(1);
-                uniformBufferPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-                uniformBufferPoolSize.descriptorCount(swapChainImages.size());
+                textureSamplerPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                textureSamplerPoolSize.descriptorCount(swapChainImages.size());
 
                 VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
                 poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
