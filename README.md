@@ -1,6 +1,9 @@
 # Vulkan-Tutorial-Java
 Java port of the [great tutorial by Alexander Overvoorde](https://vulkan-tutorial.com/). The original code can be found [here](https://github.com/Overv/VulkanTutorial).
 
+
+![Tutorial Image 3](tutorial-image.jpg) 
+
 I'm going to be using [LWJGL (Lightweight Java Game Library)](https://www.lwjgl.org/), a fantastic low level API for Java with bindings for GLFW, Vulkan, OpenGL, and other C libraries.
 
 These tutorials are written to be easily followed with the original ones. However, I've made some changes to fit the Java and LWJGL styles.
