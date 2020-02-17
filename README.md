@@ -54,7 +54,7 @@ System.out.println("width = " + width.get(0));
 System.out.println("height = " + height.get(0));
 ```
 
-Nice, we now can pass pointers to primitive values, but we are dynamically allocating 2 new objects for just 2 integers.
+Nice, now we can pass pointers to primitive values, but we are dynamically allocating 2 new objects for just 2 integers.
 And what if we only need these 2 variables for a short period of time? We need to wait for the Garbage Collector to get rid of those 
 disposable variables.
 
