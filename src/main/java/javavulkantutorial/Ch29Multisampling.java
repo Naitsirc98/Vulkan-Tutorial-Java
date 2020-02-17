@@ -1,45 +1,51 @@
 package javavulkantutorial;
 
-        import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
-        import org.joml.*;
-        import org.lwjgl.PointerBuffer;
-        import org.lwjgl.system.Configuration;
-        import org.lwjgl.system.MemoryStack;
-        import org.lwjgl.system.Pointer;
-        import org.lwjgl.vulkan.*;
+import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+import org.joml.Matrix4f;
+import org.joml.Vector2fc;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.Configuration;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.Pointer;
+import org.lwjgl.vulkan.*;
 
-        import java.lang.Math;
-        import java.net.URI;
-        import java.net.URISyntaxException;
-        import java.nio.ByteBuffer;
-        import java.nio.IntBuffer;
-        import java.nio.LongBuffer;
-        import java.nio.file.Paths;
-        import java.util.*;
-        import java.util.stream.IntStream;
-        import java.util.stream.Stream;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-        import static java.lang.ClassLoader.getSystemClassLoader;
-        import static java.util.stream.Collectors.toSet;
-        import static javavulkantutorial.AlignmentUtils.alignas;
-        import static javavulkantutorial.AlignmentUtils.alignof;
-        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
-        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
-        import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
-        import static org.lwjgl.glfw.GLFW.*;
-        import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
-        import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
-        import static org.lwjgl.stb.STBImage.*;
-        import static org.lwjgl.system.Configuration.DEBUG;
-        import static org.lwjgl.system.MemoryStack.stackGet;
-        import static org.lwjgl.system.MemoryStack.stackPush;
-        import static org.lwjgl.system.MemoryUtil.NULL;
-        import static org.lwjgl.vulkan.EXTDebugUtils.*;
-        import static org.lwjgl.vulkan.KHRSurface.*;
-        import static org.lwjgl.vulkan.KHRSwapchain.*;
-        import static org.lwjgl.vulkan.VK10.*;
+import static java.lang.ClassLoader.getSystemClassLoader;
+import static java.util.stream.Collectors.toSet;
+import static javavulkantutorial.AlignmentUtils.alignas;
+import static javavulkantutorial.AlignmentUtils.alignof;
+import static javavulkantutorial.ModelLoader.Model;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
+import static org.lwjgl.assimp.Assimp.aiProcess_DropNormals;
+import static org.lwjgl.assimp.Assimp.aiProcess_FlipUVs;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
+import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+import static org.lwjgl.stb.STBImage.*;
+import static org.lwjgl.system.Configuration.DEBUG;
+import static org.lwjgl.system.MemoryStack.stackGet;
+import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.vulkan.EXTDebugUtils.*;
+import static org.lwjgl.vulkan.KHRSurface.*;
+import static org.lwjgl.vulkan.KHRSwapchain.*;
+import static org.lwjgl.vulkan.VK10.*;
 
-public class Ch25TextureMapping {
+public class Ch29Multisampling {
 
     private static class HelloTriangleApplication {
 
@@ -140,16 +146,16 @@ public class Ch25TextureMapping {
 
         private static class Vertex {
 
-            private static final int SIZEOF = (2 + 3 + 2) * Float.BYTES;
+            private static final int SIZEOF = (3 + 3 + 2) * Float.BYTES;
             private static final int OFFSETOF_POS = 0;
-            private static final int OFFSETOF_COLOR = 2 * Float.BYTES;
-            private static final int OFFSETOF_TEXTCOORDS = 5 * Float.BYTES;
+            private static final int OFFSETOF_COLOR = 3 * Float.BYTES;
+            private static final int OFFSETOF_TEXTCOORDS = (3 + 3) * Float.BYTES;
 
-            private Vector2fc pos;
+            private Vector3fc pos;
             private Vector3fc color;
             private Vector2fc texCoords;
 
-            public Vertex(Vector2fc pos, Vector3fc color, Vector2fc texCoords) {
+            public Vertex(Vector3fc pos, Vector3fc color, Vector2fc texCoords) {
                 this.pos = pos;
                 this.color = color;
                 this.texCoords = texCoords;
@@ -176,7 +182,7 @@ public class Ch25TextureMapping {
                 VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
                 posDescription.binding(0);
                 posDescription.location(0);
-                posDescription.format(VK_FORMAT_R32G32_SFLOAT);
+                posDescription.format(VK_FORMAT_R32G32B32_SFLOAT);
                 posDescription.offset(OFFSETOF_POS);
 
                 // Color
@@ -198,17 +204,6 @@ public class Ch25TextureMapping {
 
         }
 
-        private static final Vertex[] VERTICES = {
-                new Vertex(new Vector2f(-0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f), new Vector2f(1.0f, 0.0f)),
-                new Vertex(new Vector2f(0.5f, -0.5f), new Vector3f(0.0f, 1.0f, 0.0f), new Vector2f(0.0f, 0.0f)),
-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f), new Vector2f(0.0f, 1.0f)),
-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(1.0f, 1.0f, 1.0f), new Vector2f(1.0f, 1.0f))
-        };
-
-        private static final /*uint16_t*/ short[] INDICES = {
-                0, 1, 2, 2, 3, 0
-        };
-
         // ======= FIELDS ======= //
 
         private long window;
@@ -218,6 +213,7 @@ public class Ch25TextureMapping {
         private long surface;
 
         private VkPhysicalDevice physicalDevice;
+        private int msaaSamples = VK_SAMPLE_COUNT_1_BIT;
         private VkDevice device;
 
         private VkQueue graphicsQueue;
@@ -239,11 +235,22 @@ public class Ch25TextureMapping {
 
         private long commandPool;
 
+        private long colorImage;
+        private long colorImageMemory;
+        private long colorImageView;
+
+        private long depthImage;
+        private long depthImageMemory;
+        private long depthImageView;
+
+        private int mipLevels;
         private long textureImage;
         private long textureImageMemory;
         private long textureImageView;
         private long textureSampler;
 
+        private Vertex[] vertices;
+        private int[] indices;
         private long vertexBuffer;
         private long vertexBufferMemory;
         private long indexBuffer;
@@ -310,6 +317,7 @@ public class Ch25TextureMapping {
             createTextureImage();
             createTextureImageView();
             createTextureSampler();
+            loadModel();
             createVertexBuffer();
             createIndexBuffer();
             createDescriptorSetLayout();
@@ -329,6 +337,14 @@ public class Ch25TextureMapping {
         }
 
         private void cleanupSwapChain() {
+
+            vkDestroyImageView(device, colorImageView, null);
+            vkDestroyImage(device, colorImage, null);
+            vkFreeMemory(device, colorImageMemory, null);
+
+            vkDestroyImageView(device, depthImageView, null);
+            vkDestroyImage(device, depthImage, null);
+            vkFreeMemory(device, depthImageMemory, null);
 
             uniformBuffers.forEach(ubo -> vkDestroyBuffer(device, ubo, null));
             uniformBuffersMemory.forEach(uboMemory -> vkFreeMemory(device, uboMemory, null));
@@ -417,6 +433,8 @@ public class Ch25TextureMapping {
             createImageViews();
             createRenderPass();
             createGraphicsPipeline();
+            createColorResources();
+            createDepthResources();
             createFramebuffers();
             createUniformBuffers();
             createDescriptorPool();
@@ -545,6 +563,7 @@ public class Ch25TextureMapping {
                 }
 
                 physicalDevice = device;
+                msaaSamples = getMaxUsableSampleCount();
             }
         }
 
@@ -567,6 +586,7 @@ public class Ch25TextureMapping {
 
                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
                 deviceFeatures.samplerAnisotropy(true);
+                deviceFeatures.sampleRateShading(true); // Enable sample shading feature for the device
 
                 VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
 
@@ -675,7 +695,7 @@ public class Ch25TextureMapping {
             swapChainImageViews = new ArrayList<>(swapChainImages.size());
 
             for(long swapChainImage : swapChainImages) {
-                swapChainImageViews.add(createImageView(swapChainImage, swapChainImageFormat));
+                swapChainImageViews.add(createImageView(swapChainImage, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1));
             }
         }
 
@@ -683,24 +703,64 @@ public class Ch25TextureMapping {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
+                VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.callocStack(3, stack);
+                VkAttachmentReference.Buffer attachmentRefs = VkAttachmentReference.callocStack(3, stack);
+
+                // Color attachments
+
+                // MSAA Image
+                VkAttachmentDescription colorAttachment = attachments.get(0);
                 colorAttachment.format(swapChainImageFormat);
-                colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
+                colorAttachment.samples(msaaSamples);
                 colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
                 colorAttachment.storeOp(VK_ATTACHMENT_STORE_OP_STORE);
                 colorAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
                 colorAttachment.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
                 colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-                colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                colorAttachment.finalLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
+                VkAttachmentReference colorAttachmentRef = attachmentRefs.get(0);
                 colorAttachmentRef.attachment(0);
                 colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+                // Present Image
+                VkAttachmentDescription colorAttachmentResolve = attachments.get(2);
+                colorAttachmentResolve.format(swapChainImageFormat);
+                colorAttachmentResolve.samples(VK_SAMPLE_COUNT_1_BIT);
+                colorAttachmentResolve.loadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+                colorAttachmentResolve.storeOp(VK_ATTACHMENT_STORE_OP_STORE);
+                colorAttachmentResolve.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+                colorAttachmentResolve.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
+                colorAttachmentResolve.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+                colorAttachmentResolve.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+                VkAttachmentReference colorAttachmentResolveRef = attachmentRefs.get(2);
+                colorAttachmentResolveRef.attachment(2);
+                colorAttachmentResolveRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+
+                // Depth-Stencil attachments
+
+                VkAttachmentDescription depthAttachment = attachments.get(1);
+                depthAttachment.format(findDepthFormat());
+                depthAttachment.samples(msaaSamples);
+                depthAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
+                depthAttachment.storeOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
+                depthAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+                depthAttachment.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
+                depthAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+                depthAttachment.finalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+                VkAttachmentReference depthAttachmentRef = attachmentRefs.get(1);
+                depthAttachmentRef.attachment(1);
+                depthAttachmentRef.layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
                 VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
                 subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
                 subpass.colorAttachmentCount(1);
-                subpass.pColorAttachments(colorAttachmentRef);
+                subpass.pColorAttachments(VkAttachmentReference.callocStack(1, stack).put(0, colorAttachmentRef));
+                subpass.pDepthStencilAttachment(depthAttachmentRef);
+                subpass.pResolveAttachments(VkAttachmentReference.callocStack(1, stack).put(0, colorAttachmentResolveRef));
 
                 VkSubpassDependency.Buffer dependency = VkSubpassDependency.callocStack(1, stack);
                 dependency.srcSubpass(VK_SUBPASS_EXTERNAL);
@@ -712,7 +772,7 @@ public class Ch25TextureMapping {
 
                 VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
-                renderPassInfo.pAttachments(colorAttachment);
+                renderPassInfo.pAttachments(attachments);
                 renderPassInfo.pSubpasses(subpass);
                 renderPassInfo.pDependencies(dependency);
 
@@ -765,8 +825,8 @@ public class Ch25TextureMapping {
 
                 // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
                 // Check ShaderSPIRVUtils class to see how it can be done
-                SPIRV vertShaderSPIRV = compileShaderFile("shaders/25_shader_textures.vert", VERTEX_SHADER);
-                SPIRV fragShaderSPIRV = compileShaderFile("shaders/25_shader_textures.frag", FRAGMENT_SHADER);
+                SPIRV vertShaderSPIRV = compileShaderFile("shaders/26_shader_depth.vert", VERTEX_SHADER);
+                SPIRV fragShaderSPIRV = compileShaderFile("shaders/26_shader_depth.frag", FRAGMENT_SHADER);
 
                 long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                 long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
@@ -838,8 +898,19 @@ public class Ch25TextureMapping {
 
                 VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.callocStack(stack);
                 multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
-                multisampling.sampleShadingEnable(false);
-                multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
+                multisampling.sampleShadingEnable(true);
+                multisampling.minSampleShading(0.2f); // Enable sample shading in the pipeline
+                multisampling.rasterizationSamples(msaaSamples); // Min fraction for sample shading; closer to one is smoother
+
+                VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.callocStack(stack);
+                depthStencil.sType(VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
+                depthStencil.depthTestEnable(true);
+                depthStencil.depthWriteEnable(true);
+                depthStencil.depthCompareOp(VK_COMPARE_OP_LESS);
+                depthStencil.depthBoundsTestEnable(false);
+                depthStencil.minDepthBounds(0.0f); // Optional
+                depthStencil.maxDepthBounds(1.0f); // Optional
+                depthStencil.stencilTestEnable(false);
 
                 // ===> COLOR BLENDING <===
 
@@ -876,6 +947,7 @@ public class Ch25TextureMapping {
                 pipelineInfo.pViewportState(viewportState);
                 pipelineInfo.pRasterizationState(rasterizer);
                 pipelineInfo.pMultisampleState(multisampling);
+                pipelineInfo.pDepthStencilState(depthStencil);
                 pipelineInfo.pColorBlendState(colorBlending);
                 pipelineInfo.layout(pipelineLayout);
                 pipelineInfo.renderPass(renderPass);
@@ -907,7 +979,7 @@ public class Ch25TextureMapping {
 
             try(MemoryStack stack = stackPush()) {
 
-                LongBuffer attachments = stack.mallocLong(1);
+                LongBuffer attachments = stack.longs(colorImageView, depthImageView, VK_NULL_HANDLE);
                 LongBuffer pFramebuffer = stack.mallocLong(1);
 
                 // Lets allocate the create info struct once and just update the pAttachments field each iteration
@@ -920,7 +992,7 @@ public class Ch25TextureMapping {
 
                 for(long imageView : swapChainImageViews) {
 
-                    attachments.put(0, imageView);
+                    attachments.put(2, imageView);
 
                     framebufferInfo.pAttachments(attachments);
 
@@ -953,11 +1025,110 @@ public class Ch25TextureMapping {
             }
         }
 
+        private void createColorResources() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                LongBuffer pColorImage = stack.mallocLong(1);
+                LongBuffer pColorImageMemory = stack.mallocLong(1);
+
+                createImage(swapChainExtent.width(), swapChainExtent.height(),
+                        1,
+                        msaaSamples,
+                        swapChainImageFormat,
+                        VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        pColorImage,
+                        pColorImageMemory);
+
+                colorImage = pColorImage.get(0);
+                colorImageMemory = pColorImageMemory.get(0);
+
+                colorImageView = createImageView(colorImage, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+
+                transitionImageLayout(colorImage, swapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
+            }
+        }
+
+        private void createDepthResources() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                int depthFormat = findDepthFormat();
+
+                LongBuffer pDepthImage = stack.mallocLong(1);
+                LongBuffer pDepthImageMemory = stack.mallocLong(1);
+
+                createImage(
+                        swapChainExtent.width(), swapChainExtent.height(),
+                        1,
+                        msaaSamples,
+                        depthFormat,
+                        VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        pDepthImage,
+                        pDepthImageMemory);
+
+                depthImage = pDepthImage.get(0);
+                depthImageMemory = pDepthImageMemory.get(0);
+
+                depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+
+                // Explicitly transitioning the depth image
+                transitionImageLayout(depthImage, depthFormat,
+                        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                        1);
+
+            }
+        }
+
+        private int findSupportedFormat(IntBuffer formatCandidates, int tiling, int features) {
+
+            try(MemoryStack stack = stackPush()) {
+
+                VkFormatProperties props = VkFormatProperties.callocStack(stack);
+
+                for(int i = 0; i < formatCandidates.capacity(); ++i) {
+
+                    int format = formatCandidates.get(i);
+
+                    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, props);
+
+                    if(tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures() & features) == features) {
+                        return format;
+                    } else if(tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures() & features) == features) {
+                        return format;
+                    }
+
+                }
+            }
+
+            throw new RuntimeException("Failed to find supported format");
+        }
+
+
+        private int findDepthFormat() {
+            return findSupportedFormat(
+                    stackGet().ints(VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT),
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        }
+
+        private boolean hasStencilComponent(int format) {
+            return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+        }
+
+        private double log2(double n) {
+            return Math.log(n) / Math.log(2);
+        }
+
         private void createTextureImage() {
 
             try(MemoryStack stack = stackPush()) {
 
-                String filename = Paths.get(new URI(getSystemClassLoader().getResource("textures/texture.jpg").toExternalForm())).toString();
+                String filename = Paths.get(new URI(getSystemClassLoader().getResource("textures/chalet.jpg").toExternalForm())).toString();
 
                 IntBuffer pWidth = stack.mallocInt(1);
                 IntBuffer pHeight = stack.mallocInt(1);
@@ -966,6 +1137,8 @@ public class Ch25TextureMapping {
                 ByteBuffer pixels = stbi_load(filename, pWidth, pHeight, pChannels, STBI_rgb_alpha);
 
                 long imageSize = pWidth.get(0) * pHeight.get(0) * 4; // pChannels.get(0);
+
+                mipLevels = (int) Math.floor(log2(Math.max(pWidth.get(0), pHeight.get(0)))) + 1;
 
                 if(pixels == null) {
                     throw new RuntimeException("Failed to load texture image " + filename);
@@ -992,8 +1165,9 @@ public class Ch25TextureMapping {
                 LongBuffer pTextureImage = stack.mallocLong(1);
                 LongBuffer pTextureImageMemory = stack.mallocLong(1);
                 createImage(pWidth.get(0), pHeight.get(0),
-                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                        mipLevels,
+                        VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         pTextureImage,
                         pTextureImageMemory);
@@ -1004,14 +1178,13 @@ public class Ch25TextureMapping {
                 transitionImageLayout(textureImage,
                         VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_UNDEFINED,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                        mipLevels);
 
                 copyBufferToImage(pStagingBuffer.get(0), textureImage, pWidth.get(0), pHeight.get(0));
 
-                transitionImageLayout(textureImage,
-                        VK_FORMAT_R8G8B8A8_SRGB,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                // Transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
+                generateMipmaps(textureImage, VK_FORMAT_R8G8B8A8_SRGB, pWidth.get(0), pHeight.get(0), mipLevels);
 
                 vkDestroyBuffer(device, pStagingBuffer.get(0), null);
                 vkFreeMemory(device, pStagingBufferMemory.get(0), null);
@@ -1021,8 +1194,139 @@ public class Ch25TextureMapping {
             }
         }
 
+        private void generateMipmaps(long image, int imageFormat, int width, int height, int mipLevels) {
+
+            try(MemoryStack stack = stackPush()) {
+
+                // Check if image format supports linear blitting
+                VkFormatProperties formatProperties = VkFormatProperties.mallocStack(stack);
+                vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, formatProperties);
+
+                if((formatProperties.optimalTilingFeatures() & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) == 0) {
+                    throw new RuntimeException("Texture image format does not support linear blitting");
+                }
+
+                VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.callocStack(1, stack);
+                barrier.sType(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
+                barrier.image(image);
+                barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+                barrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+                barrier.dstAccessMask(VK_QUEUE_FAMILY_IGNORED);
+                barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+                barrier.subresourceRange().baseArrayLayer(0);
+                barrier.subresourceRange().layerCount(1);
+                barrier.subresourceRange().levelCount(1);
+
+                int mipWidth = width;
+                int mipHeight = height;
+
+                for(int i = 1;i < mipLevels;i++) {
+
+                    barrier.subresourceRange().baseMipLevel(i - 1);
+                    barrier.oldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                    barrier.newLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+                    barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT);
+                    barrier.dstAccessMask(VK_ACCESS_TRANSFER_READ_BIT);
+
+                    vkCmdPipelineBarrier(commandBuffer,
+                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+                            null,
+                            null,
+                            barrier);
+
+                    VkImageBlit.Buffer blit = VkImageBlit.callocStack(1, stack);
+                    blit.srcOffsets(0).set(0, 0, 0);
+                    blit.srcOffsets(1).set(mipWidth, mipHeight, 1);
+                    blit.srcSubresource().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+                    blit.srcSubresource().mipLevel(i - 1);
+                    blit.srcSubresource().baseArrayLayer(0);
+                    blit.srcSubresource().layerCount(1);
+                    blit.dstOffsets(0).set(0, 0, 0);
+                    blit.dstOffsets(1).set(mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1);
+                    blit.dstSubresource().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+                    blit.dstSubresource().mipLevel(i);
+                    blit.dstSubresource().baseArrayLayer(0);
+                    blit.dstSubresource().layerCount(1);
+
+                    vkCmdBlitImage(commandBuffer,
+                            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                            image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                            blit,
+                            VK_FILTER_LINEAR);
+
+                    barrier.oldLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+                    barrier.newLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                    barrier.srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT);
+                    barrier.dstAccessMask(VK_ACCESS_SHADER_READ_BIT);
+
+                    vkCmdPipelineBarrier(commandBuffer,
+                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                            null,
+                            null,
+                            barrier);
+
+                    if(mipWidth > 1) {
+                        mipWidth /= 2;
+                    }
+
+                    if(mipHeight > 1) {
+                        mipHeight /= 2;
+                    }
+                }
+
+                barrier.subresourceRange().baseMipLevel(mipLevels - 1);
+                barrier.oldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                barrier.newLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT);
+                barrier.dstAccessMask(VK_ACCESS_SHADER_READ_BIT);
+
+                vkCmdPipelineBarrier(commandBuffer,
+                        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                        null,
+                        null,
+                        barrier);
+
+                endSingleTimeCommands(commandBuffer);
+            }
+        }
+
+        private int getMaxUsableSampleCount() {
+
+            try(MemoryStack stack = stackPush()) {
+
+                VkPhysicalDeviceProperties physicalDeviceProperties = VkPhysicalDeviceProperties.mallocStack(stack);
+                vkGetPhysicalDeviceProperties(physicalDevice, physicalDeviceProperties);
+
+                int sampleCountFlags = physicalDeviceProperties.limits().framebufferColorSampleCounts()
+                        & physicalDeviceProperties.limits().framebufferDepthSampleCounts();
+
+                if((sampleCountFlags & VK_SAMPLE_COUNT_64_BIT) != 0) {
+                    return VK_SAMPLE_COUNT_64_BIT;
+                }
+                if((sampleCountFlags & VK_SAMPLE_COUNT_32_BIT) != 0) {
+                    return VK_SAMPLE_COUNT_32_BIT;
+                }
+                if((sampleCountFlags & VK_SAMPLE_COUNT_16_BIT) != 0) {
+                    return VK_SAMPLE_COUNT_16_BIT;
+                }
+                if((sampleCountFlags & VK_SAMPLE_COUNT_8_BIT) != 0) {
+                    return VK_SAMPLE_COUNT_8_BIT;
+                }
+                if((sampleCountFlags & VK_SAMPLE_COUNT_4_BIT) != 0) {
+                    return VK_SAMPLE_COUNT_4_BIT;
+                }
+                if((sampleCountFlags & VK_SAMPLE_COUNT_2_BIT) != 0) {
+                    return VK_SAMPLE_COUNT_2_BIT;
+                }
+
+                return VK_SAMPLE_COUNT_1_BIT;
+            }
+        }
+
         private void createTextureImageView() {
-            textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+            textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
         }
 
         private void createTextureSampler() {
@@ -1043,6 +1347,9 @@ public class Ch25TextureMapping {
                 samplerInfo.compareEnable(false);
                 samplerInfo.compareOp(VK_COMPARE_OP_ALWAYS);
                 samplerInfo.mipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR);
+                samplerInfo.minLod(0); // Optional
+                samplerInfo.maxLod((float) mipLevels);
+                samplerInfo.mipLodBias(0); // Optional
 
                 LongBuffer pTextureSampler = stack.mallocLong(1);
 
@@ -1054,7 +1361,7 @@ public class Ch25TextureMapping {
             }
         }
 
-        private long createImageView(long image, int format) {
+        private long createImageView(long image, int format, int aspectFlags, int mipLevels) {
 
             try(MemoryStack stack = stackPush()) {
 
@@ -1063,9 +1370,9 @@ public class Ch25TextureMapping {
                 viewInfo.image(image);
                 viewInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
                 viewInfo.format(format);
-                viewInfo.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+                viewInfo.subresourceRange().aspectMask(aspectFlags);
                 viewInfo.subresourceRange().baseMipLevel(0);
-                viewInfo.subresourceRange().levelCount(1);
+                viewInfo.subresourceRange().levelCount(mipLevels);
                 viewInfo.subresourceRange().baseArrayLayer(0);
                 viewInfo.subresourceRange().layerCount(1);
 
@@ -1079,7 +1386,7 @@ public class Ch25TextureMapping {
             }
         }
 
-        private void createImage(int width, int height, int format, int tiling, int usage, int memProperties,
+        private void createImage(int width, int height, int mipLevels, int numSamples, int format, int tiling, int usage, int memProperties,
                                  LongBuffer pTextureImage, LongBuffer pTextureImageMemory) {
 
             try(MemoryStack stack = stackPush()) {
@@ -1090,13 +1397,13 @@ public class Ch25TextureMapping {
                 imageInfo.extent().width(width);
                 imageInfo.extent().height(height);
                 imageInfo.extent().depth(1);
-                imageInfo.mipLevels(1);
+                imageInfo.mipLevels(mipLevels);
                 imageInfo.arrayLayers(1);
                 imageInfo.format(format);
                 imageInfo.tiling(tiling);
                 imageInfo.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
                 imageInfo.usage(usage);
-                imageInfo.samples(VK_SAMPLE_COUNT_1_BIT);
+                imageInfo.samples(numSamples);
                 imageInfo.sharingMode(VK_SHARING_MODE_EXCLUSIVE);
 
                 if(vkCreateImage(device, imageInfo, null, pTextureImage) != VK_SUCCESS) {
@@ -1119,7 +1426,7 @@ public class Ch25TextureMapping {
             }
         }
 
-        private void transitionImageLayout(long image, int format, int oldLayout, int newLayout) {
+        private void transitionImageLayout(long image, int format, int oldLayout, int newLayout, int mipLevels) {
 
             try(MemoryStack stack = stackPush()) {
 
@@ -1130,11 +1437,24 @@ public class Ch25TextureMapping {
                 barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
                 barrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
                 barrier.image(image);
-                barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+
                 barrier.subresourceRange().baseMipLevel(0);
-                barrier.subresourceRange().levelCount(1);
+                barrier.subresourceRange().levelCount(mipLevels);
                 barrier.subresourceRange().baseArrayLayer(0);
                 barrier.subresourceRange().layerCount(1);
+
+                if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+
+                    barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_DEPTH_BIT);
+
+                    if(hasStencilComponent(format)) {
+                        barrier.subresourceRange().aspectMask(
+                                barrier.subresourceRange().aspectMask() | VK_IMAGE_ASPECT_STENCIL_BIT);
+                    }
+
+                } else {
+                    barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+                }
 
                 int sourceStage;
                 int destinationStage;
@@ -1154,6 +1474,22 @@ public class Ch25TextureMapping {
 
                     sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
                     destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+                } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+
+                    barrier.srcAccessMask(0);
+                    barrier.dstAccessMask(VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+
+                    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                    destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+
+                } else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+
+                    barrier.srcAccessMask(0);
+                    barrier.dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+
+                    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                    destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
                 } else {
                     throw new IllegalArgumentException("Unsupported layout transition");
@@ -1201,11 +1537,37 @@ public class Ch25TextureMapping {
             src.limit(src.capacity()).rewind();
         }
 
+        private void loadModel() {
+
+            File modelFile = new File(getSystemClassLoader().getResource("models/chalet.obj").getFile());
+
+            Model model = ModelLoader.loadModel(modelFile, aiProcess_FlipUVs | aiProcess_DropNormals);
+
+            final int vertexCount = model.positions.size();
+
+            vertices = new Vertex[vertexCount];
+
+            final Vector3fc color = new Vector3f(1.0f, 1.0f, 1.0f);
+
+            for(int i = 0;i < vertexCount;i++) {
+                vertices[i] = new Vertex(
+                        model.positions.get(i),
+                        color,
+                        model.texCoords.get(i));
+            }
+
+            indices = new int[model.indices.size()];
+
+            for(int i = 0;i < indices.length;i++) {
+                indices[i] = model.indices.get(i);
+            }
+        }
+
         private void createVertexBuffer() {
 
             try(MemoryStack stack = stackPush()) {
 
-                long bufferSize = Vertex.SIZEOF * VERTICES.length;
+                long bufferSize = Vertex.SIZEOF * vertices.length;
 
                 LongBuffer pBuffer = stack.mallocLong(1);
                 LongBuffer pBufferMemory = stack.mallocLong(1);
@@ -1222,7 +1584,7 @@ public class Ch25TextureMapping {
 
                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                 {
-                    memcpy(data.getByteBuffer(0, (int) bufferSize), VERTICES);
+                    memcpy(data.getByteBuffer(0, (int) bufferSize), vertices);
                 }
                 vkUnmapMemory(device, stagingBufferMemory);
 
@@ -1246,7 +1608,7 @@ public class Ch25TextureMapping {
 
             try(MemoryStack stack = stackPush()) {
 
-                long bufferSize = Short.BYTES * INDICES.length;
+                long bufferSize = Integer.BYTES * indices.length;
 
                 LongBuffer pBuffer = stack.mallocLong(1);
                 LongBuffer pBufferMemory = stack.mallocLong(1);
@@ -1263,7 +1625,7 @@ public class Ch25TextureMapping {
 
                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                 {
-                    memcpy(data.getByteBuffer(0, (int) bufferSize), INDICES);
+                    memcpy(data.getByteBuffer(0, (int) bufferSize), indices);
                 }
                 vkUnmapMemory(device, stagingBufferMemory);
 
@@ -1492,6 +1854,7 @@ public class Ch25TextureMapping {
             for(Vertex vertex : vertices) {
                 buffer.putFloat(vertex.pos.x());
                 buffer.putFloat(vertex.pos.y());
+                buffer.putFloat(vertex.pos.z());
 
                 buffer.putFloat(vertex.color.x());
                 buffer.putFloat(vertex.color.y());
@@ -1502,10 +1865,10 @@ public class Ch25TextureMapping {
             }
         }
 
-        private void memcpy(ByteBuffer buffer, short[] indices) {
+        private void memcpy(ByteBuffer buffer, int[] indices) {
 
-            for(short index : indices) {
-                buffer.putShort(index);
+            for(int index : indices) {
+                buffer.putInt(index);
             }
 
             buffer.rewind();
@@ -1571,8 +1934,10 @@ public class Ch25TextureMapping {
                 renderArea.extent(swapChainExtent);
                 renderPassInfo.renderArea(renderArea);
 
-                VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
-                clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
+                VkClearValue.Buffer clearValues = VkClearValue.callocStack(2, stack);
+                clearValues.get(0).color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
+                clearValues.get(1).depthStencil().set(1.0f, 0);
+
                 renderPassInfo.pClearValues(clearValues);
 
                 for(int i = 0;i < commandBuffersCount;i++) {
@@ -1594,12 +1959,12 @@ public class Ch25TextureMapping {
                         LongBuffer offsets = stack.longs(0);
                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
 
-                        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+                        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
                         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 pipelineLayout, 0, stack.longs(descriptorSets.get(i)), null);
 
-                        vkCmdDrawIndexed(commandBuffer, INDICES.length, 1, 0, 0, 0);
+                        vkCmdDrawIndexed(commandBuffer, indices.length, 1, 0, 0, 0);
                     }
                     vkCmdEndRenderPass(commandBuffer);
 

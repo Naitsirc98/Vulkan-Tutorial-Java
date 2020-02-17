@@ -2121,8 +2121,6 @@ public class Ch27ModelLoading {
 
     public static void main(String[] args) {
 
-        Configuration.DEBUG.set(true);
-
         HelloTriangleApplication app = new HelloTriangleApplication();
 
         app.run();

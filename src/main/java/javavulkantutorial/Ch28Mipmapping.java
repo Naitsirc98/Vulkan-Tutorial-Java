@@ -706,8 +706,6 @@ public class Ch28Mipmapping {
                 colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
                 colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-                int y = attachments.get(0).samples();
-
                 VkAttachmentReference colorAttachmentRef = attachmentRefs.get(0);
                 colorAttachmentRef.attachment(0);
                 colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -1156,6 +1154,7 @@ public class Ch28Mipmapping {
                 barrier.sType(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
                 barrier.image(image);
                 barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+                barrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
                 barrier.dstAccessMask(VK_QUEUE_FAMILY_IGNORED);
                 barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
                 barrier.subresourceRange().baseArrayLayer(0);
@@ -2230,8 +2229,6 @@ public class Ch28Mipmapping {
     }
 
     public static void main(String[] args) {
-
-        Configuration.DEBUG.set(true);
 
         HelloTriangleApplication app = new HelloTriangleApplication();
 
