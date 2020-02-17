@@ -11,6 +11,7 @@ import java.io.File;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.assimp.Assimp.*;
@@ -21,13 +22,21 @@ public class ModelLoader {
 
         try(AIScene scene = aiImportFile(file.getAbsolutePath(), flags)) {
 
+            Logger logger = Logger.getLogger(ModelLoader.class.getSimpleName());
+
+            logger.info("Loading model " + file.getPath() + "...");
+
             if(scene == null || scene.mRootNode() == null) {
                 throw new RuntimeException("Could not load model: " + aiGetErrorString());
             }
 
             Model model = new Model();
 
+            long startTime = System.nanoTime();
+
             processNode(scene.mRootNode(), scene, model);
+
+            logger.info("Model loaded in " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 
             return model;
         }
@@ -58,7 +67,6 @@ public class ModelLoader {
 
         for(int i = 0;i < meshIndices.capacity();i++) {
             AIMesh mesh = AIMesh.create(pMeshes.get(meshIndices.get(i)));
-            System.out.println("loading mesh " + mesh.mName().dataString());
             processMesh(scene, mesh, model);
         }
 
@@ -81,7 +89,6 @@ public class ModelLoader {
             positions.add(new Vector3f(position.x(), position.y(), position.z()));
         }
 
-        System.out.println("positions terminated");
     }
 
     private static void processTexCoords(AIMesh mesh, List<Vector2fc> texCoords) {
@@ -93,7 +100,6 @@ public class ModelLoader {
             texCoords.add(new Vector2f(coords.x(), coords.y()));
         }
 
-        System.out.println("tex coords terminated");
     }
 
     private static void processIndices(AIMesh mesh, List<Integer> indices) {
@@ -108,7 +114,6 @@ public class ModelLoader {
             }
         }
 
-        System.out.println("indices terminated");
     }
 
     public static class Model {
