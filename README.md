@@ -91,6 +91,24 @@ Great, now we are able to use stack allocation in Java. Let's see how it looks l
 
 ```Java
 
+try(MemoryStack stack = stackPush()) {
+
+  IntBuffer width = stack.mallocInt(1); // 1 int unitialized
+  IntBuffer height = stack.ints(0); // 1 int initialized with 0
+
+  glfwGetWindowSize(window, width, height);
+
+  // Print the values 
+  System.out.println("width = " + width.get(0));
+  System.out.println("height = " + height.get(0));
+}
+
+```
+
+Now let's see a real Vulkan example with *MemoryStack*:
+
+```Java
+
 private void createInstance() {
 
     try(MemoryStack stack = stackPush()) {
@@ -124,7 +142,6 @@ private void createInstance() {
 
         instance = new VkInstance(instancePtr.get(0), createInfo);
     }
-  }
 }
 
 ```
