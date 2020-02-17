@@ -58,7 +58,7 @@ Nice, now we can pass pointers to primitive values, but we are dynamically alloc
 And what if we only need these 2 variables for a short period of time? We need to wait for the Garbage Collector to get rid of those 
 disposable variables.
 
-Lucky for us, LWJGL solves this problem with its own memory management system. You can learn about that [here](https://github.com/LWJGL/lwjgl3-wiki/wiki/1.3.-Memory-FAQ).
+Luckily for us, LWJGL solves this problem with its own memory management system. You can learn about that [here](https://github.com/LWJGL/lwjgl3-wiki/wiki/1.3.-Memory-FAQ).
 
 ### Stack allocation
 
