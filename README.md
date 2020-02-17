@@ -124,7 +124,6 @@ private void createInstance() {
 
         instance = new VkInstance(instancePtr.get(0), createInfo);
     }
-  }
 }
 
 ```
