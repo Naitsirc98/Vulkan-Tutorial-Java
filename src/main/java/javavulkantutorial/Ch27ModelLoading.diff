@@ -1,0 +1,185 @@
+diff --git a/Ch26DepthBuffering.java b/Ch27ModelLoading.java
+index f1c94ec..c338125 100644
+--- a/Ch26DepthBuffering.java
++++ b/Ch27ModelLoading.java
+@@ -3,11 +3,14 @@ package javavulkantutorial;
+ import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+ import org.joml.*;
+ import org.lwjgl.PointerBuffer;
++import org.lwjgl.assimp.AIScene;
++import org.lwjgl.assimp.Assimp;
+ import org.lwjgl.system.Configuration;
+ import org.lwjgl.system.MemoryStack;
+ import org.lwjgl.system.Pointer;
+ import org.lwjgl.vulkan.*;
+ 
++import java.io.File;
+ import java.lang.Math;
+ import java.net.URI;
+ import java.net.URISyntaxException;
+@@ -23,9 +26,11 @@ import static java.lang.ClassLoader.getSystemClassLoader;
+ import static java.util.stream.Collectors.toSet;
+ import static javavulkantutorial.AlignmentUtils.alignas;
+ import static javavulkantutorial.AlignmentUtils.alignof;
++import static javavulkantutorial.ModelLoader.*;
+ import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
+ import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
+ import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
++import static org.lwjgl.assimp.Assimp.*;
+ import static org.lwjgl.glfw.GLFW.*;
+ import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
+ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+@@ -39,7 +44,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch26DepthBuffering {
++public class Ch27ModelLoading {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -198,23 +203,6 @@ public class Ch26DepthBuffering {
+ 
+         }
+ 
+-        private static final Vertex[] VERTICES = {
+-                new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f ), new Vector3f(1.0f, 0.0f, 0.0f), new Vector2f(0.0f, 0.0f)),
+-                new Vertex(new Vector3f(0.5f, -0.5f, 0.0f  ), new Vector3f(0.0f, 1.0f, 0.0f), new Vector2f(1.0f, 0.0f)),
+-                new Vertex(new Vector3f(0.5f, 0.5f, 0.0f   ), new Vector3f(0.0f, 0.0f, 1.0f), new Vector2f(1.0f, 1.0f)),
+-                new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f  ), new Vector3f(1.0f, 1.0f, 1.0f), new Vector2f(0.0f, 1.0f)),
+-
+-                new Vertex(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f), new Vector2f(0.0f, 0.0f)),
+-                new Vertex(new Vector3f(0.5f, -0.5f, -0.5f ), new Vector3f(0.0f, 1.0f, 0.0f), new Vector2f(1.0f, 0.0f)),
+-                new Vertex(new Vector3f(0.5f, 0.5f, -0.5f  ), new Vector3f(0.0f, 0.0f, 1.0f), new Vector2f(1.0f, 1.0f)),
+-                new Vertex(new Vector3f(-0.5f, 0.5f, -0.5f ), new Vector3f(1.0f, 1.0f, 1.0f), new Vector2f(0.0f, 1.0f))
+-        };
+-
+-        private static final /*uint16_t*/ short[] INDICES = {
+-                0, 1, 2, 2, 3, 0,
+-                4, 5, 6, 6, 7, 4
+-        };
+-
+         // ======= FIELDS ======= //
+ 
+         private long window;
+@@ -254,6 +242,8 @@ public class Ch26DepthBuffering {
+         private long textureImageView;
+         private long textureSampler;
+ 
++        private Vertex[] vertices;
++        private int[] indices;
+         private long vertexBuffer;
+         private long vertexBufferMemory;
+         private long indexBuffer;
+@@ -320,6 +310,7 @@ public class Ch26DepthBuffering {
+             createTextureImage();
+             createTextureImageView();
+             createTextureSampler();
++            loadModel();
+             createVertexBuffer();
+             createIndexBuffer();
+             createDescriptorSetLayout();
+@@ -1073,7 +1064,7 @@ public class Ch26DepthBuffering {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                String filename = Paths.get(new URI(getSystemClassLoader().getResource("textures/texture.jpg").toExternalForm())).toString();
++                String filename = Paths.get(new URI(getSystemClassLoader().getResource("textures/chalet.jpg").toExternalForm())).toString();
+ 
+                 IntBuffer pWidth = stack.mallocInt(1);
+                 IntBuffer pHeight = stack.mallocInt(1);
+@@ -1338,11 +1329,37 @@ public class Ch26DepthBuffering {
+             src.limit(src.capacity()).rewind();
+         }
+ 
++        private void loadModel() {
++
++            File modelFile = new File(getSystemClassLoader().getResource("models/chalet.obj").getFile());
++
++            Model model = ModelLoader.loadModel(modelFile, aiProcess_FlipUVs | aiProcess_DropNormals);
++
++            final int vertexCount = model.positions.size();
++
++            vertices = new Vertex[vertexCount];
++
++            final Vector3fc color = new Vector3f(1.0f, 1.0f, 1.0f);
++
++            for(int i = 0;i < vertexCount;i++) {
++                vertices[i] = new Vertex(
++                        model.positions.get(i),
++                        color,
++                        model.texCoords.get(i));
++            }
++
++            indices = new int[model.indices.size()];
++
++            for(int i = 0;i < indices.length;i++) {
++                indices[i] = model.indices.get(i);
++            }
++        }
++
+         private void createVertexBuffer() {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                long bufferSize = Vertex.SIZEOF * VERTICES.length;
++                long bufferSize = Vertex.SIZEOF * vertices.length;
+ 
+                 LongBuffer pBuffer = stack.mallocLong(1);
+                 LongBuffer pBufferMemory = stack.mallocLong(1);
+@@ -1359,7 +1376,7 @@ public class Ch26DepthBuffering {
+ 
+                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
+                 {
+-                    memcpy(data.getByteBuffer(0, (int) bufferSize), VERTICES);
++                    memcpy(data.getByteBuffer(0, (int) bufferSize), vertices);
+                 }
+                 vkUnmapMemory(device, stagingBufferMemory);
+ 
+@@ -1383,7 +1400,7 @@ public class Ch26DepthBuffering {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                long bufferSize = Short.BYTES * INDICES.length;
++                long bufferSize = Integer.BYTES * indices.length;
+ 
+                 LongBuffer pBuffer = stack.mallocLong(1);
+                 LongBuffer pBufferMemory = stack.mallocLong(1);
+@@ -1400,7 +1417,7 @@ public class Ch26DepthBuffering {
+ 
+                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
+                 {
+-                    memcpy(data.getByteBuffer(0, (int) bufferSize), INDICES);
++                    memcpy(data.getByteBuffer(0, (int) bufferSize), indices);
+                 }
+                 vkUnmapMemory(device, stagingBufferMemory);
+ 
+@@ -1640,10 +1657,10 @@ public class Ch26DepthBuffering {
+             }
+         }
+ 
+-        private void memcpy(ByteBuffer buffer, short[] indices) {
++        private void memcpy(ByteBuffer buffer, int[] indices) {
+ 
+-            for(short index : indices) {
+-                buffer.putShort(index);
++            for(int index : indices) {
++                buffer.putInt(index);
+             }
+ 
+             buffer.rewind();
+@@ -1734,12 +1751,12 @@ public class Ch26DepthBuffering {
+                         LongBuffer offsets = stack.longs(0);
+                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
+ 
+-                        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
++                        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+ 
+                         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 pipelineLayout, 0, stack.longs(descriptorSets.get(i)), null);
+ 
+-                        vkCmdDrawIndexed(commandBuffer, INDICES.length, 1, 0, 0, 0);
++                        vkCmdDrawIndexed(commandBuffer, indices.length, 1, 0, 0, 0);
+                     }
+                     vkCmdEndRenderPass(commandBuffer);
+ 

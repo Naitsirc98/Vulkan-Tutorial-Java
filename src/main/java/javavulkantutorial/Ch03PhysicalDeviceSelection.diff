@@ -1,0 +1,117 @@
+diff --git a/Ch02ValidationLayers.java b/Ch03PhysicalDeviceSelection.java
+index 3d085be..724db16 100644
+--- a/Ch02ValidationLayers.java
++++ b/Ch03PhysicalDeviceSelection.java
+@@ -19,7 +19,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
+ import static org.lwjgl.vulkan.EXTDebugUtils.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch02ValidationLayers {
++public class Ch03PhysicalDeviceSelection {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -66,11 +66,23 @@ public class Ch02ValidationLayers {
+ 
+         }
+ 
++        private class QueueFamilyIndices {
++
++            // We use Integer to use null as the empty value
++            private Integer graphicsFamily;
++
++            private boolean isComplete() {
++                return graphicsFamily != null;
++            }
++
++        }
++
+         // ======= FIELDS ======= //
+ 
+         private long window;
+         private VkInstance instance;
+         private long debugMessenger;
++        private VkPhysicalDevice physicalDevice;
+ 
+         // ======= METHODS ======= //
+ 
+@@ -102,6 +114,7 @@ public class Ch02ValidationLayers {
+         private void initVulkan() {
+             createInstance();
+             setupDebugMessenger();
++            pickPhysicalDevice();
+         }
+ 
+         private void mainLoop() {
+@@ -200,6 +213,71 @@ public class Ch02ValidationLayers {
+             }
+         }
+ 
++        private void pickPhysicalDevice() {
++
++            try(MemoryStack stack = stackPush()) {
++
++                IntBuffer deviceCount = stack.ints(0);
++
++                vkEnumeratePhysicalDevices(instance, deviceCount, null);
++
++                if(deviceCount.get(0) == 0) {
++                    throw new RuntimeException("Failed to find GPUs with Vulkan support");
++                }
++
++                PointerBuffer ppPhysicalDevices = stack.mallocPointer(deviceCount.get(0));
++
++                vkEnumeratePhysicalDevices(instance, deviceCount, ppPhysicalDevices);
++
++                VkPhysicalDevice device = null;
++
++                for(int i = 0;i < ppPhysicalDevices.capacity();i++) {
++
++                    device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
++
++                    if(isDeviceSuitable(device)) {
++                        break;
++                    }
++                }
++
++                if(device == null) {
++                    throw new RuntimeException("Failed to find a suitable GPU");
++                }
++
++                physicalDevice = device;
++            }
++        }
++
++        private boolean isDeviceSuitable(VkPhysicalDevice device) {
++
++            QueueFamilyIndices indices = findQueueFamilies(device);
++
++            return indices.isComplete();
++        }
++
++        private QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
++
++            QueueFamilyIndices indices = new QueueFamilyIndices();
++
++            try(MemoryStack stack = stackPush()) {
++
++                IntBuffer queueFamilyCount = stack.ints(0);
++
++                vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
++
++                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.mallocStack(queueFamilyCount.get(0), stack);
++
++                vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
++
++                indices.graphicsFamily = queueFamilies.stream()
++                        .map(VkQueueFamilyProperties::queueFlags)
++                        .filter(queueFlags -> (queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0)
++                        .findAny().orElse(null);
++
++                return indices;
++            }
++        }
++
+         private PointerBuffer validationLayersAsPointerBuffer() {
+ 
+             MemoryStack stack = stackGet();

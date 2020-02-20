@@ -1,0 +1,333 @@
+diff --git a/Ch24Sampler.java b/Ch25TextureMapping.java
+index 970afb4..0e3edfd 100644
+--- a/Ch24Sampler.java
++++ b/Ch25TextureMapping.java
+@@ -1,41 +1,45 @@
+ package javavulkantutorial;
+ 
+-import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+-import org.joml.*;
+-import org.lwjgl.PointerBuffer;
+-import org.lwjgl.system.MemoryStack;
+-import org.lwjgl.system.Pointer;
+-import org.lwjgl.vulkan.*;
+-
+-import java.lang.Math;
+-import java.nio.ByteBuffer;
+-import java.nio.IntBuffer;
+-import java.nio.LongBuffer;
+-import java.util.*;
+-import java.util.stream.IntStream;
+-import java.util.stream.Stream;
+-
+-import static java.lang.ClassLoader.getSystemClassLoader;
+-import static java.util.stream.Collectors.toSet;
+-import static javavulkantutorial.AlignmentUtils.alignas;
+-import static javavulkantutorial.AlignmentUtils.alignof;
+-import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
+-import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
+-import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
+-import static org.lwjgl.glfw.GLFW.*;
+-import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
+-import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+-import static org.lwjgl.stb.STBImage.*;
+-import static org.lwjgl.system.Configuration.DEBUG;
+-import static org.lwjgl.system.MemoryStack.stackGet;
+-import static org.lwjgl.system.MemoryStack.stackPush;
+-import static org.lwjgl.system.MemoryUtil.NULL;
+-import static org.lwjgl.vulkan.EXTDebugUtils.*;
+-import static org.lwjgl.vulkan.KHRSurface.*;
+-import static org.lwjgl.vulkan.KHRSwapchain.*;
+-import static org.lwjgl.vulkan.VK10.*;
+-
+-public class Ch24Sampler {
++        import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
++        import org.joml.*;
++        import org.lwjgl.PointerBuffer;
++        import org.lwjgl.system.Configuration;
++        import org.lwjgl.system.MemoryStack;
++        import org.lwjgl.system.Pointer;
++        import org.lwjgl.vulkan.*;
++
++        import java.lang.Math;
++        import java.net.URI;
++        import java.net.URISyntaxException;
++        import java.nio.ByteBuffer;
++        import java.nio.IntBuffer;
++        import java.nio.LongBuffer;
++        import java.nio.file.Paths;
++        import java.util.*;
++        import java.util.stream.IntStream;
++        import java.util.stream.Stream;
++
++        import static java.lang.ClassLoader.getSystemClassLoader;
++        import static java.util.stream.Collectors.toSet;
++        import static javavulkantutorial.AlignmentUtils.alignas;
++        import static javavulkantutorial.AlignmentUtils.alignof;
++        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
++        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
++        import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
++        import static org.lwjgl.glfw.GLFW.*;
++        import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
++        import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
++        import static org.lwjgl.stb.STBImage.*;
++        import static org.lwjgl.system.Configuration.DEBUG;
++        import static org.lwjgl.system.MemoryStack.stackGet;
++        import static org.lwjgl.system.MemoryStack.stackPush;
++        import static org.lwjgl.system.MemoryUtil.NULL;
++        import static org.lwjgl.vulkan.EXTDebugUtils.*;
++        import static org.lwjgl.vulkan.KHRSurface.*;
++        import static org.lwjgl.vulkan.KHRSwapchain.*;
++        import static org.lwjgl.vulkan.VK10.*;
++
++public class Ch25TextureMapping {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -136,16 +140,19 @@ public class Ch24Sampler {
+ 
+         private static class Vertex {
+ 
+-            private static final int SIZEOF = (2 + 3) * Float.BYTES;
++            private static final int SIZEOF = (2 + 3 + 2) * Float.BYTES;
+             private static final int OFFSETOF_POS = 0;
+             private static final int OFFSETOF_COLOR = 2 * Float.BYTES;
++            private static final int OFFSETOF_TEXTCOORDS = 5 * Float.BYTES;
+ 
+             private Vector2fc pos;
+             private Vector3fc color;
++            private Vector2fc texCoords;
+ 
+-            public Vertex(Vector2fc pos, Vector3fc color) {
++            public Vertex(Vector2fc pos, Vector3fc color, Vector2fc texCoords) {
+                 this.pos = pos;
+                 this.color = color;
++                this.texCoords = texCoords;
+             }
+ 
+             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
+@@ -163,7 +170,7 @@ public class Ch24Sampler {
+             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
+ 
+                 VkVertexInputAttributeDescription.Buffer attributeDescriptions =
+-                        VkVertexInputAttributeDescription.callocStack(2);
++                        VkVertexInputAttributeDescription.callocStack(3);
+ 
+                 // Position
+                 VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
+@@ -179,16 +186,23 @@ public class Ch24Sampler {
+                 colorDescription.format(VK_FORMAT_R32G32B32_SFLOAT);
+                 colorDescription.offset(OFFSETOF_COLOR);
+ 
++                // Texture coordinates
++                VkVertexInputAttributeDescription texCoordsDescription = attributeDescriptions.get(2);
++                texCoordsDescription.binding(0);
++                texCoordsDescription.location(2);
++                texCoordsDescription.format(VK_FORMAT_R32G32_SFLOAT);
++                texCoordsDescription.offset(OFFSETOF_TEXTCOORDS);
++
+                 return attributeDescriptions.rewind();
+             }
+ 
+         }
+ 
+         private static final Vertex[] VERTICES = {
+-                new Vertex(new Vector2f(-0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
+-                new Vertex(new Vector2f(0.5f, -0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
+-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f)),
+-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(1.0f, 1.0f, 1.0f))
++                new Vertex(new Vector2f(-0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f), new Vector2f(1.0f, 0.0f)),
++                new Vertex(new Vector2f(0.5f, -0.5f), new Vector3f(0.0f, 1.0f, 0.0f), new Vector2f(0.0f, 0.0f)),
++                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f), new Vector2f(0.0f, 1.0f)),
++                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(1.0f, 1.0f, 1.0f), new Vector2f(1.0f, 1.0f))
+         };
+ 
+         private static final /*uint16_t*/ short[] INDICES = {
+@@ -661,7 +675,7 @@ public class Ch24Sampler {
+             swapChainImageViews = new ArrayList<>(swapChainImages.size());
+ 
+             for(long swapChainImage : swapChainImages) {
+-                swapChainImageViews.add(createImageView(swapChainImage, VK_FORMAT_R8G8B8A8_SRGB));
++                swapChainImageViews.add(createImageView(swapChainImage, swapChainImageFormat));
+             }
+         }
+ 
+@@ -716,16 +730,25 @@ public class Ch24Sampler {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkDescriptorSetLayoutBinding.Buffer uboLayoutBinding = VkDescriptorSetLayoutBinding.callocStack(1, stack);
++                VkDescriptorSetLayoutBinding.Buffer bindings = VkDescriptorSetLayoutBinding.callocStack(2, stack);
++
++                VkDescriptorSetLayoutBinding uboLayoutBinding = bindings.get(0);
+                 uboLayoutBinding.binding(0);
+                 uboLayoutBinding.descriptorCount(1);
+                 uboLayoutBinding.descriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+                 uboLayoutBinding.pImmutableSamplers(null);
+                 uboLayoutBinding.stageFlags(VK_SHADER_STAGE_VERTEX_BIT);
+ 
++                VkDescriptorSetLayoutBinding samplerLayoutBinding = bindings.get(1);
++                samplerLayoutBinding.binding(1);
++                samplerLayoutBinding.descriptorCount(1);
++                samplerLayoutBinding.descriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
++                samplerLayoutBinding.pImmutableSamplers(null);
++                samplerLayoutBinding.stageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
++
+                 VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.callocStack(stack);
+                 layoutInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
+-                layoutInfo.pBindings(uboLayoutBinding);
++                layoutInfo.pBindings(bindings);
+ 
+                 LongBuffer pDescriptorSetLayout = stack.mallocLong(1);
+ 
+@@ -742,8 +765,8 @@ public class Ch24Sampler {
+ 
+                 // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
+                 // Check ShaderSPIRVUtils class to see how it can be done
+-                SPIRV vertShaderSPIRV = compileShaderFile("shaders/21_shader_ubo.vert", VERTEX_SHADER);
+-                SPIRV fragShaderSPIRV = compileShaderFile("shaders/21_shader_ubo.frag", FRAGMENT_SHADER);
++                SPIRV vertShaderSPIRV = compileShaderFile("shaders/25_shader_textures.vert", VERTEX_SHADER);
++                SPIRV fragShaderSPIRV = compileShaderFile("shaders/25_shader_textures.frag", FRAGMENT_SHADER);
+ 
+                 long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
+                 long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
+@@ -934,7 +957,7 @@ public class Ch24Sampler {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                String filename = getSystemClassLoader().getResource("textures/texture.jpg").toExternalForm();
++                String filename = Paths.get(new URI(getSystemClassLoader().getResource("textures/texture.jpg").toExternalForm())).toString();
+ 
+                 IntBuffer pWidth = stack.mallocInt(1);
+                 IntBuffer pHeight = stack.mallocInt(1);
+@@ -942,7 +965,7 @@ public class Ch24Sampler {
+ 
+                 ByteBuffer pixels = stbi_load(filename, pWidth, pHeight, pChannels, STBI_rgb_alpha);
+ 
+-                long imageSize = pWidth.get(0) * pHeight.get(0) * /*always 4 due to STBI_rgb_alpha*/pChannels.get(0);
++                long imageSize = pWidth.get(0) * pHeight.get(0) * 4; // pChannels.get(0);
+ 
+                 if(pixels == null) {
+                     throw new RuntimeException("Failed to load texture image " + filename);
+@@ -960,7 +983,7 @@ public class Ch24Sampler {
+                 PointerBuffer data = stack.mallocPointer(1);
+                 vkMapMemory(device, pStagingBufferMemory.get(0), 0, imageSize, 0, data);
+                 {
+-                    memcpy(data.getByteBuffer(0, (int) imageSize), pixels, imageSize);
++                    memcpy(data.getByteBuffer(0, (int)imageSize), pixels, imageSize);
+                 }
+                 vkUnmapMemory(device, pStagingBufferMemory.get(0));
+ 
+@@ -992,6 +1015,9 @@ public class Ch24Sampler {
+ 
+                 vkDestroyBuffer(device, pStagingBuffer.get(0), null);
+                 vkFreeMemory(device, pStagingBufferMemory.get(0), null);
++
++            } catch (URISyntaxException e) {
++                e.printStackTrace();
+             }
+         }
+ 
+@@ -1286,13 +1312,19 @@ public class Ch24Sampler {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkDescriptorPoolSize.Buffer poolSize = VkDescriptorPoolSize.callocStack(1, stack);
+-                poolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+-                poolSize.descriptorCount(swapChainImages.size());
++                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.callocStack(2, stack);
++
++                VkDescriptorPoolSize uniformBufferPoolSize = poolSizes.get(0);
++                uniformBufferPoolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
++                uniformBufferPoolSize.descriptorCount(swapChainImages.size());
++
++                VkDescriptorPoolSize textureSamplerPoolSize = poolSizes.get(1);
++                textureSamplerPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
++                textureSamplerPoolSize.descriptorCount(swapChainImages.size());
+ 
+                 VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
+                 poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+-                poolInfo.pPoolSizes(poolSize);
++                poolInfo.pPoolSizes(poolSizes);
+                 poolInfo.maxSets(swapChainImages.size());
+ 
+                 LongBuffer pDescriptorPool = stack.mallocLong(1);
+@@ -1331,13 +1363,28 @@ public class Ch24Sampler {
+                 bufferInfo.offset(0);
+                 bufferInfo.range(UniformBufferObject.SIZEOF);
+ 
+-                VkWriteDescriptorSet.Buffer descriptorWrite = VkWriteDescriptorSet.callocStack(1, stack);
+-                descriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
+-                descriptorWrite.dstBinding(0);
+-                descriptorWrite.dstArrayElement(0);
+-                descriptorWrite.descriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+-                descriptorWrite.descriptorCount(1);
+-                descriptorWrite.pBufferInfo(bufferInfo);
++                VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.callocStack(1, stack);
++                imageInfo.imageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
++                imageInfo.imageView(textureImageView);
++                imageInfo.sampler(textureSampler);
++
++                VkWriteDescriptorSet.Buffer descriptorWrites = VkWriteDescriptorSet.callocStack(2, stack);
++
++                VkWriteDescriptorSet uboDescriptorWrite = descriptorWrites.get(0);
++                uboDescriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
++                uboDescriptorWrite.dstBinding(0);
++                uboDescriptorWrite.dstArrayElement(0);
++                uboDescriptorWrite.descriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
++                uboDescriptorWrite.descriptorCount(1);
++                uboDescriptorWrite.pBufferInfo(bufferInfo);
++
++                VkWriteDescriptorSet samplerDescriptorWrite = descriptorWrites.get(1);
++                samplerDescriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
++                samplerDescriptorWrite.dstBinding(1);
++                samplerDescriptorWrite.dstArrayElement(0);
++                samplerDescriptorWrite.descriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
++                samplerDescriptorWrite.descriptorCount(1);
++                samplerDescriptorWrite.pImageInfo(imageInfo);
+ 
+                 for(int i = 0;i < pDescriptorSets.capacity();i++) {
+ 
+@@ -1345,9 +1392,10 @@ public class Ch24Sampler {
+ 
+                     bufferInfo.buffer(uniformBuffers.get(i));
+ 
+-                    descriptorWrite.dstSet(descriptorSet);
++                    uboDescriptorWrite.dstSet(descriptorSet);
++                    samplerDescriptorWrite.dstSet(descriptorSet);
+ 
+-                    vkUpdateDescriptorSets(device, descriptorWrite, null);
++                    vkUpdateDescriptorSets(device, descriptorWrites, null);
+ 
+                     descriptorSets.add(descriptorSet);
+                 }
+@@ -1448,6 +1496,9 @@ public class Ch24Sampler {
+                 buffer.putFloat(vertex.color.x());
+                 buffer.putFloat(vertex.color.y());
+                 buffer.putFloat(vertex.color.z());
++
++                buffer.putFloat(vertex.texCoords.x());
++                buffer.putFloat(vertex.texCoords.y());
+             }
+         }
+ 
+@@ -1583,8 +1634,8 @@ public class Ch24Sampler {
+                 for(int i = 0;i < MAX_FRAMES_IN_FLIGHT;i++) {
+ 
+                     if(vkCreateSemaphore(device, semaphoreInfo, null, pImageAvailableSemaphore) != VK_SUCCESS
+-                    || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
+-                    || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
++                            || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
++                            || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
+ 
+                         throw new RuntimeException("Failed to create synchronization objects for the frame " + i);
+                     }
+@@ -1708,7 +1759,7 @@ public class Ch24Sampler {
+ 
+         private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
+             return availableFormats.stream()
+-                    .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
++                    .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_SRGB)
+                     .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                     .findAny()
+                     .orElse(availableFormats.get(0));

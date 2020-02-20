@@ -1,0 +1,83 @@
+diff --git a/Ch06SwapChainCreation.java b/Ch07ImageViews.java
+index 1e954dc..8113641 100644
+--- a/Ch06SwapChainCreation.java
++++ b/Ch07ImageViews.java
+@@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch06SwapChainCreation {
++public class Ch07ImageViews {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -120,6 +120,7 @@ public class Ch06SwapChainCreation {
+ 
+         private long swapChain;
+         private List<Long> swapChainImages;
++        private List<Long> swapChainImageViews;
+         private int swapChainImageFormat;
+         private VkExtent2D swapChainExtent;
+ 
+@@ -157,6 +158,7 @@ public class Ch06SwapChainCreation {
+             pickPhysicalDevice();
+             createLogicalDevice();
+             createSwapChain();
++            createImageViews();
+         }
+ 
+         private void mainLoop() {
+@@ -169,6 +171,8 @@ public class Ch06SwapChainCreation {
+ 
+         private void cleanup() {
+ 
++            swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
++
+             vkDestroySwapchainKHR(device, swapChain, null);
+ 
+             vkDestroyDevice(device, null);
+@@ -431,6 +435,44 @@ public class Ch06SwapChainCreation {
+             }
+         }
+ 
++        private void createImageViews() {
++
++            swapChainImageViews = new ArrayList<>(swapChainImages.size());
++
++            try(MemoryStack stack = stackPush()) {
++
++                LongBuffer pImageView = stack.mallocLong(1);
++
++                for(long swapChainImage : swapChainImages) {
++
++                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
++
++                    createInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
++                    createInfo.image(swapChainImage);
++                    createInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
++                    createInfo.format(swapChainImageFormat);
++
++                    createInfo.components().r(VK_COMPONENT_SWIZZLE_IDENTITY);
++                    createInfo.components().g(VK_COMPONENT_SWIZZLE_IDENTITY);
++                    createInfo.components().b(VK_COMPONENT_SWIZZLE_IDENTITY);
++                    createInfo.components().a(VK_COMPONENT_SWIZZLE_IDENTITY);
++
++                    createInfo.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
++                    createInfo.subresourceRange().baseMipLevel(0);
++                    createInfo.subresourceRange().levelCount(1);
++                    createInfo.subresourceRange().baseArrayLayer(0);
++                    createInfo.subresourceRange().layerCount(1);
++
++                    if (vkCreateImageView(device, createInfo, null, pImageView) != VK_SUCCESS) {
++                        throw new RuntimeException("Failed to create image views");
++                    }
++
++                    swapChainImageViews.add(pImageView.get(0));
++                }
++
++            }
++        }
++
+         private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
+             return availableFormats.stream()
+                     .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)

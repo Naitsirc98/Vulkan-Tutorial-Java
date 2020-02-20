@@ -1,0 +1,136 @@
+diff --git a/Ch16SwapChainRecreation.java b/Ch17VertexInput.java
+index 7b191bc..88d3d79 100644
+--- a/Ch16SwapChainRecreation.java
++++ b/Ch17VertexInput.java
+@@ -1,6 +1,10 @@
+ package javavulkantutorial;
+ 
+ import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
++import org.joml.Vector2f;
++import org.joml.Vector2fc;
++import org.joml.Vector3f;
++import org.joml.Vector3fc;
+ import org.lwjgl.PointerBuffer;
+ import org.lwjgl.system.MemoryStack;
+ import org.lwjgl.system.Pointer;
+@@ -29,7 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch16SwapChainRecreation {
++public class Ch17VertexInput {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -113,6 +117,63 @@ public class Ch16SwapChainRecreation {
+ 
+         }
+ 
++        private static class Vertex {
++
++            private static final int SIZEOF = (2 + 3) * Float.BYTES;
++            private static final int OFFSETOF_POS = 0;
++            private static final int OFFSETOF_COLOR = 2 * Float.BYTES;
++
++            private Vector2fc pos;
++            private Vector3fc color;
++
++            public Vertex(Vector2fc pos, Vector3fc color) {
++                this.pos = pos;
++                this.color = color;
++            }
++
++            private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
++
++                VkVertexInputBindingDescription.Buffer bindingDescription =
++                        VkVertexInputBindingDescription.callocStack(1);
++
++                bindingDescription.binding(0);
++                bindingDescription.stride(Vertex.SIZEOF);
++                bindingDescription.inputRate(VK_VERTEX_INPUT_RATE_VERTEX);
++
++                return bindingDescription;
++            }
++
++            private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
++
++                VkVertexInputAttributeDescription.Buffer attributeDescriptions =
++                        VkVertexInputAttributeDescription.callocStack(2);
++
++                // Position
++                VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
++                posDescription.binding(0);
++                posDescription.location(0);
++                posDescription.format(VK_FORMAT_R32G32_SFLOAT);
++                posDescription.offset(OFFSETOF_POS);
++
++                // Color
++                VkVertexInputAttributeDescription colorDescription = attributeDescriptions.get(1);
++                colorDescription.binding(0);
++                colorDescription.location(1);
++                colorDescription.format(VK_FORMAT_R32G32B32_SFLOAT);
++                colorDescription.offset(OFFSETOF_COLOR);
++
++                return attributeDescriptions.rewind();
++            }
++
++        }
++
++        private static final Vertex[] VERTICES = {
++                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
++                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
++                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
++        };
++
++
+         // ======= FIELDS ======= //
+ 
+         private long window;
+@@ -621,8 +682,8 @@ public class Ch16SwapChainRecreation {
+ 
+                 // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
+                 // Check ShaderSPIRVUtils class to see how it can be done
+-                SPIRV vertShaderSPIRV = compileShaderFile("shaders/09_shader_base.vert", VERTEX_SHADER);
+-                SPIRV fragShaderSPIRV = compileShaderFile("shaders/09_shader_base.frag", FRAGMENT_SHADER);
++                SPIRV vertShaderSPIRV = compileShaderFile("shaders/17_shader_vertexbuffer.vert", VERTEX_SHADER);
++                SPIRV fragShaderSPIRV = compileShaderFile("shaders/17_shader_vertexbuffer.frag", FRAGMENT_SHADER);
+ 
+                 long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
+                 long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
+@@ -649,6 +710,8 @@ public class Ch16SwapChainRecreation {
+ 
+                 VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
+                 vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
++                vertexInputInfo.pVertexBindingDescriptions(Vertex.getBindingDescription());
++                vertexInputInfo.pVertexAttributeDescriptions(Vertex.getAttributeDescriptions());
+ 
+                 // ===> ASSEMBLY STAGE <===
+ 
+@@ -919,11 +982,14 @@ public class Ch16SwapChainRecreation {
+ 
+                 IntBuffer pImageIndex = stack.mallocInt(1);
+ 
+-                int vkResult = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
++                int vkResult = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
++                        thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
+ 
+                 if(vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
+                     recreateSwapChain();
+                     return;
++                } else if(vkResult != VK_SUCCESS) {
++                    throw new RuntimeException("Cannot get image");
+                 }
+ 
+                 final int imageIndex = pImageIndex.get(0);
+@@ -947,8 +1013,9 @@ public class Ch16SwapChainRecreation {
+ 
+                 vkResetFences(device, thisFrame.pFence());
+ 
+-                if(vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence()) != VK_SUCCESS) {
+-                    throw new RuntimeException("Failed to submit draw command buffer");
++                if((vkResult = vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence())) != VK_SUCCESS) {
++                    vkResetFences(device, thisFrame.pFence());
++                    throw new RuntimeException("Failed to submit draw command buffer: " + vkResult);
+                 }
+ 
+                 VkPresentInfoKHR presentInfo = VkPresentInfoKHR.callocStack(stack);

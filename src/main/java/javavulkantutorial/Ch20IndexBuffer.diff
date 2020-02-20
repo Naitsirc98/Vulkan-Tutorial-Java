@@ -1,0 +1,322 @@
+diff --git a/Ch19StagingBufferTransferQueue.java b/Ch20IndexBuffer.java
+index 409ed27..3ac7afe 100644
+--- a/Ch19StagingBufferTransferQueue.java
++++ b/Ch20IndexBuffer.java
+@@ -33,20 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-/**
+- * This is an alternative version of the Staging Buffer Chapter, where I use a different queue family for transfer operations.
+- *
+- * As suggested in the tutorial, I will make the following modifications:
+- *
+- * - Modify QueueFamilyIndices and findQueueFamilies to explicitly look for a queue family with the VK_QUEUE_TRANSFER bit, but not the VK_QUEUE_GRAPHICS_BIT.
+- * - Modify createLogicalDevice to request a handle to the transfer queue
+- * - Create a second command pool for command buffers that are submitted on the transfer queue family
+- * - Change the sharingMode of resources to be VK_SHARING_MODE_CONCURRENT and specify both the graphics and transfer queue families
+- * - Submit any transfer commands like vkCmdCopyBuffer to the transfer queue instead of the graphics queue
+- *
+- *
+- * */
+-public class Ch19StagingBufferTransferQueue {
++public class Ch20IndexBuffer {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -108,18 +95,17 @@ public class Ch19StagingBufferTransferQueue {
+             // We use Integer to use null as the empty value
+             private Integer graphicsFamily;
+             private Integer presentFamily;
+-            private Integer transferFamily;
+ 
+             private boolean isComplete() {
+-                return graphicsFamily != null && presentFamily != null && transferFamily != null;
++                return graphicsFamily != null && presentFamily != null;
+             }
+ 
+             public int[] unique() {
+-                return IntStream.of(graphicsFamily, presentFamily, transferFamily).distinct().toArray();
++                return IntStream.of(graphicsFamily, presentFamily).distinct().toArray();
+             }
+ 
+             public int[] array() {
+-                return new int[] {graphicsFamily, presentFamily, transferFamily};
++                return new int[] {graphicsFamily, presentFamily};
+             }
+         }
+ 
+@@ -182,9 +168,14 @@ public class Ch19StagingBufferTransferQueue {
+         }
+ 
+         private static final Vertex[] VERTICES = {
+-                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
+-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
+-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
++                new Vertex(new Vector2f(-0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
++                new Vertex(new Vector2f(0.5f, -0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
++                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f)),
++                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(1.0f, 1.0f, 1.0f))
++        };
++
++        private static final /*uint16_t*/ short[] INDICES = {
++                0, 1, 2, 2, 3, 0
+         };
+ 
+         // ======= FIELDS ======= //
+@@ -200,7 +191,6 @@ public class Ch19StagingBufferTransferQueue {
+ 
+         private VkQueue graphicsQueue;
+         private VkQueue presentQueue;
+-        private VkQueue transferQueue;
+ 
+         private long swapChain;
+         private List<Long> swapChainImages;
+@@ -214,13 +204,14 @@ public class Ch19StagingBufferTransferQueue {
+         private long graphicsPipeline;
+ 
+         private long commandPool;
+-        private long transferCommandPool;
+ 
+         private long vertexBuffer;
+         private long vertexBufferMemory;
+ 
++        private long indexBuffer;
++        private long indexBufferMemory;
++
+         private List<VkCommandBuffer> commandBuffers;
+-        private VkCommandBuffer transferCommandBuffer;
+ 
+         private List<Frame> inFlightFrames;
+         private Map<Integer, Frame> imagesInFlight;
+@@ -277,6 +268,7 @@ public class Ch19StagingBufferTransferQueue {
+             createLogicalDevice();
+             createCommandPool();
+             createVertexBuffer();
++            createIndexBuffer();
+             createSwapChainObjects();
+             createSyncObjects();
+         }
+@@ -313,8 +305,8 @@ public class Ch19StagingBufferTransferQueue {
+ 
+             cleanupSwapChain();
+ 
+-            vkFreeCommandBuffers(device, transferCommandPool, stackGet().pointers(transferCommandBuffer));
+-            vkDestroyCommandPool(device, transferCommandPool, null);
++            vkDestroyBuffer(device, indexBuffer, null);
++            vkFreeMemory(device, indexBufferMemory, null);
+ 
+             vkDestroyBuffer(device, vertexBuffer, null);
+             vkFreeMemory(device, vertexBufferMemory, null);
+@@ -545,9 +537,6 @@ public class Ch19StagingBufferTransferQueue {
+ 
+                 vkGetDeviceQueue(device, indices.presentFamily, 0, pQueue);
+                 presentQueue = new VkQueue(pQueue.get(0), device);
+-
+-                vkGetDeviceQueue(device, indices.transferFamily, 0, pQueue);
+-                transferQueue = new VkQueue(pQueue.get(0), device);
+             }
+         }
+ 
+@@ -894,44 +883,57 @@ public class Ch19StagingBufferTransferQueue {
+                 if (vkCreateCommandPool(device, poolInfo, null, pCommandPool) != VK_SUCCESS) {
+                     throw new RuntimeException("Failed to create command pool");
+                 }
++
+                 commandPool = pCommandPool.get(0);
++            }
++        }
+ 
+-                // ===> Create the transfer command pool <===
++        private void createVertexBuffer() {
+ 
+-                poolInfo.queueFamilyIndex(queueFamilyIndices.transferFamily);
+-                // Tell Vulkan that the buffers of this pool will be constantly rerecorded
+-                poolInfo.flags(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
++            try(MemoryStack stack = stackPush()) {
+ 
+-                if (vkCreateCommandPool(device, poolInfo, null, pCommandPool) != VK_SUCCESS) {
+-                    throw new RuntimeException("Failed to create command pool");
+-                }
+-                transferCommandPool = pCommandPool.get(0);
++                long bufferSize = Vertex.SIZEOF * VERTICES.length;
+ 
+-                allocateTransferCommandBuffer();
+-            }
+-        }
++                LongBuffer pBuffer = stack.mallocLong(1);
++                LongBuffer pBufferMemory = stack.mallocLong(1);
++                createBuffer(bufferSize,
++                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
++                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
++                        pBuffer,
++                        pBufferMemory);
+ 
+-        private void allocateTransferCommandBuffer() {
++                long stagingBuffer = pBuffer.get(0);
++                long stagingBufferMemory = pBufferMemory.get(0);
+ 
+-            try(MemoryStack stack = stackPush()) {
++                PointerBuffer data = stack.mallocPointer(1);
+ 
+-                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
+-                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+-                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+-                allocInfo.commandPool(transferCommandPool);
+-                allocInfo.commandBufferCount(1);
++                vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
++                {
++                    memcpy(data.getByteBuffer(0, (int) bufferSize), VERTICES);
++                }
++                vkUnmapMemory(device, stagingBufferMemory);
+ 
+-                PointerBuffer pCommandBuffer = stack.mallocPointer(1);
+-                vkAllocateCommandBuffers(device, allocInfo, pCommandBuffer);
+-                transferCommandBuffer = new VkCommandBuffer(pCommandBuffer.get(0), device);
++                createBuffer(bufferSize,
++                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
++                        VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
++                        pBuffer,
++                        pBufferMemory);
++
++                vertexBuffer = pBuffer.get(0);
++                vertexBufferMemory = pBufferMemory.get(0);
++
++                copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
++
++                vkDestroyBuffer(device, stagingBuffer, null);
++                vkFreeMemory(device, stagingBufferMemory, null);
+             }
+         }
+ 
+-        private void createVertexBuffer() {
++        private void createIndexBuffer() {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                long bufferSize = Vertex.SIZEOF * VERTICES.length;
++                long bufferSize = Short.BYTES * INDICES.length;
+ 
+                 LongBuffer pBuffer = stack.mallocLong(1);
+                 LongBuffer pBufferMemory = stack.mallocLong(1);
+@@ -948,20 +950,20 @@ public class Ch19StagingBufferTransferQueue {
+ 
+                 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
+                 {
+-                    memcpy(data.getByteBuffer(0, (int) bufferSize), VERTICES);
++                    memcpy(data.getByteBuffer(0, (int) bufferSize), INDICES);
+                 }
+                 vkUnmapMemory(device, stagingBufferMemory);
+ 
+                 createBuffer(bufferSize,
+-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
++                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                         VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                         pBuffer,
+                         pBufferMemory);
+ 
+-                vertexBuffer = pBuffer.get(0);
+-                vertexBufferMemory = pBufferMemory.get(0);
++                indexBuffer = pBuffer.get(0);
++                indexBufferMemory = pBufferMemory.get(0);
+ 
+-                copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
++                copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+ 
+                 vkDestroyBuffer(device, stagingBuffer, null);
+                 vkFreeMemory(device, stagingBufferMemory, null);
+@@ -976,10 +978,7 @@ public class Ch19StagingBufferTransferQueue {
+                 bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+                 bufferInfo.size(size);
+                 bufferInfo.usage(usage);
+-                // Change the sharing mode to concurrent (it will be shared between graphics and transfer queues)
+-                QueueFamilyIndices queueFamilies = findQueueFamilies(physicalDevice);
+-                bufferInfo.pQueueFamilyIndices(stack.ints(queueFamilies.graphicsFamily, queueFamilies.transferFamily));
+-                bufferInfo.sharingMode(VK_SHARING_MODE_CONCURRENT);
++                bufferInfo.sharingMode(VK_SHARING_MODE_EXCLUSIVE);
+ 
+                 if(vkCreateBuffer(device, bufferInfo, null, pBuffer) != VK_SUCCESS) {
+                     throw new RuntimeException("Failed to create vertex buffer");
+@@ -1005,28 +1004,39 @@ public class Ch19StagingBufferTransferQueue {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
++                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
++                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
++                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
++                allocInfo.commandPool(commandPool);
++                allocInfo.commandBufferCount(1);
++
++                PointerBuffer pCommandBuffer = stack.mallocPointer(1);
++                vkAllocateCommandBuffers(device, allocInfo, pCommandBuffer);
++                VkCommandBuffer commandBuffer = new VkCommandBuffer(pCommandBuffer.get(0), device);
++
+                 VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
+                 beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+                 beginInfo.flags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+ 
+-                // Transfer command buffer implicitly reset
+-                vkBeginCommandBuffer(transferCommandBuffer, beginInfo);
++                vkBeginCommandBuffer(commandBuffer, beginInfo);
+                 {
+                     VkBufferCopy.Buffer copyRegion = VkBufferCopy.callocStack(1, stack);
+                     copyRegion.size(size);
+-                    vkCmdCopyBuffer(transferCommandBuffer, srcBuffer, dstBuffer, copyRegion);
++                    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, copyRegion);
+                 }
+-                vkEndCommandBuffer(transferCommandBuffer);
++                vkEndCommandBuffer(commandBuffer);
+ 
+                 VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
+                 submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
+-                submitInfo.pCommandBuffers(stack.pointers(transferCommandBuffer));
++                submitInfo.pCommandBuffers(pCommandBuffer);
+ 
+-                if(vkQueueSubmit(transferQueue, submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
++                if(vkQueueSubmit(graphicsQueue, submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+                     throw new RuntimeException("Failed to submit copy command buffer");
+                 }
+ 
+-                vkQueueWaitIdle(transferQueue);
++                vkQueueWaitIdle(graphicsQueue);
++
++                vkFreeCommandBuffers(device, commandPool, pCommandBuffer);
+             }
+         }
+ 
+@@ -1041,6 +1051,15 @@ public class Ch19StagingBufferTransferQueue {
+             }
+         }
+ 
++        private void memcpy(ByteBuffer buffer, short[] indices) {
++
++            for(short index : indices) {
++                buffer.putShort(index);
++            }
++
++            buffer.rewind();
++        }
++
+         private int findMemoryType(int typeFilter, int properties) {
+ 
+             VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
+@@ -1115,7 +1134,9 @@ public class Ch19StagingBufferTransferQueue {
+                         LongBuffer offsets = stack.longs(0);
+                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
+ 
+-                        vkCmdDraw(commandBuffer, VERTICES.length, 1, 0, 0);
++                        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
++
++                        vkCmdDrawIndexed(commandBuffer, INDICES.length, 1, 0, 0, 0);
+                     }
+                     vkCmdEndRenderPass(commandBuffer);
+ 
+@@ -1372,8 +1393,6 @@ public class Ch19StagingBufferTransferQueue {
+ 
+                     if((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {
+                         indices.graphicsFamily = i;
+-                    } else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
+-                        indices.transferFamily = i;
+                     }
+ 
+                     vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, presentSupport);

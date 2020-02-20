@@ -1,0 +1,227 @@
+diff --git a/Ch15HelloTriangle.java b/Ch16SwapChainRecreation.java
+index 923b742..7b191bc 100644
+--- a/Ch15HelloTriangle.java
++++ b/Ch16SwapChainRecreation.java
+@@ -3,6 +3,7 @@ package javavulkantutorial;
+ import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+ import org.lwjgl.PointerBuffer;
+ import org.lwjgl.system.MemoryStack;
++import org.lwjgl.system.Pointer;
+ import org.lwjgl.vulkan.*;
+ 
+ import java.nio.ByteBuffer;
+@@ -22,13 +23,13 @@ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+ import static org.lwjgl.system.Configuration.DEBUG;
+ import static org.lwjgl.system.MemoryStack.stackGet;
+ import static org.lwjgl.system.MemoryStack.stackPush;
+-import static org.lwjgl.system.MemoryUtil.*;
++import static org.lwjgl.system.MemoryUtil.NULL;
+ import static org.lwjgl.vulkan.EXTDebugUtils.*;
+ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch15HelloTriangle {
++public class Ch16SwapChainRecreation {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -144,6 +145,8 @@ public class Ch15HelloTriangle {
+         private Map<Integer, Frame> imagesInFlight;
+         private int currentFrame;
+ 
++        boolean framebufferResize;
++
+         // ======= METHODS ======= //
+ 
+         public void run() {
+@@ -160,7 +163,7 @@ public class Ch15HelloTriangle {
+             }
+ 
+             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+-            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
++            glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+ 
+             String title = getClass().getEnclosingClass().getSimpleName();
+ 
+@@ -169,6 +172,20 @@ public class Ch15HelloTriangle {
+             if(window == NULL) {
+                 throw new RuntimeException("Cannot create window");
+             }
++
++            // In Java, we don't really need a user pointer here, because
++            // we can simply pass an instance method reference to glfwSetFramebufferSizeCallback
++            // However, I will show you how can you pass a user pointer to glfw in Java just for learning purposes:
++            // long userPointer = JNINativeInterface.NewGlobalRef(this);
++            // glfwSetWindowUserPointer(window, userPointer);
++            // Please notice that the reference must be freed manually with JNINativeInterface.nDeleteGlobalRef
++            glfwSetFramebufferSizeCallback(window, this::framebufferResizeCallback);
++        }
++
++        private void framebufferResizeCallback(long window, int width, int height) {
++            // HelloTriangleApplication app = MemoryUtil.memGlobalRefToObject(glfwGetWindowUserPointer(window));
++            // app.framebufferResize = true;
++            framebufferResize = true;
+         }
+ 
+         private void initVulkan() {
+@@ -177,13 +194,8 @@ public class Ch15HelloTriangle {
+             createSurface();
+             pickPhysicalDevice();
+             createLogicalDevice();
+-            createSwapChain();
+-            createImageViews();
+-            createRenderPass();
+-            createGraphicsPipeline();
+-            createFramebuffers();
+             createCommandPool();
+-            createCommandBuffers();
++            createSwapChainObjects();
+             createSyncObjects();
+         }
+ 
+@@ -198,20 +210,12 @@ public class Ch15HelloTriangle {
+             vkDeviceWaitIdle(device);
+         }
+ 
+-        private void cleanup() {
+-
+-            inFlightFrames.forEach(frame -> {
+-
+-                vkDestroySemaphore(device, frame.renderFinishedSemaphore(), null);
+-                vkDestroySemaphore(device, frame.imageAvailableSemaphore(), null);
+-                vkDestroyFence(device, frame.fence(), null);
+-            });
+-            imagesInFlight.clear();
+-
+-            vkDestroyCommandPool(device, commandPool, null);
++        private void cleanupSwapChain() {
+ 
+             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
+ 
++            vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
++
+             vkDestroyPipeline(device, graphicsPipeline, null);
+ 
+             vkDestroyPipelineLayout(device, pipelineLayout, null);
+@@ -221,6 +225,21 @@ public class Ch15HelloTriangle {
+             swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
+ 
+             vkDestroySwapchainKHR(device, swapChain, null);
++        }
++
++        private void cleanup() {
++
++            cleanupSwapChain();
++
++            inFlightFrames.forEach(frame -> {
++
++                vkDestroySemaphore(device, frame.renderFinishedSemaphore(), null);
++                vkDestroySemaphore(device, frame.imageAvailableSemaphore(), null);
++                vkDestroyFence(device, frame.fence(), null);
++            });
++            inFlightFrames.clear();
++
++            vkDestroyCommandPool(device, commandPool, null);
+ 
+             vkDestroyDevice(device, null);
+ 
+@@ -237,6 +256,35 @@ public class Ch15HelloTriangle {
+             glfwTerminate();
+         }
+ 
++        private void recreateSwapChain() {
++
++            try(MemoryStack stack = stackPush()) {
++
++                IntBuffer width = stack.ints(0);
++                IntBuffer height = stack.ints(0);
++
++                while(width.get(0) == 0 && height.get(0) == 0) {
++                    glfwGetFramebufferSize(window, width, height);
++                    glfwWaitEvents();
++                }
++            }
++
++            vkDeviceWaitIdle(device);
++
++            cleanupSwapChain();
++
++            createSwapChainObjects();
++        }
++
++        private void createSwapChainObjects() {
++            createSwapChain();
++            createImageViews();
++            createRenderPass();
++            createGraphicsPipeline();
++            createFramebuffers();
++            createCommandBuffers();
++        }
++
+         private void createInstance() {
+ 
+             if(ENABLE_VALIDATION_LAYERS && !checkValidationLayerSupport()) {
+@@ -871,7 +919,13 @@ public class Ch15HelloTriangle {
+ 
+                 IntBuffer pImageIndex = stack.mallocInt(1);
+ 
+-                vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
++                int vkResult = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
++
++                if(vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
++                    recreateSwapChain();
++                    return;
++                }
++
+                 final int imageIndex = pImageIndex.get(0);
+ 
+                 if(imagesInFlight.containsKey(imageIndex)) {
+@@ -907,7 +961,14 @@ public class Ch15HelloTriangle {
+ 
+                 presentInfo.pImageIndices(pImageIndex);
+ 
+-                vkQueuePresentKHR(presentQueue, presentInfo);
++                vkResult = vkQueuePresentKHR(presentQueue, presentInfo);
++
++                if(vkResult == VK_ERROR_OUT_OF_DATE_KHR || vkResult == VK_SUBOPTIMAL_KHR || framebufferResize) {
++                    framebufferResize = false;
++                    recreateSwapChain();
++                } else if(vkResult != VK_SUCCESS) {
++                    throw new RuntimeException("Failed to present swap chain image");
++                }
+ 
+                 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+             }
+@@ -957,7 +1018,12 @@ public class Ch15HelloTriangle {
+                 return capabilities.currentExtent();
+             }
+ 
+-            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(WIDTH, HEIGHT);
++            IntBuffer width = stackGet().ints(0);
++            IntBuffer height = stackGet().ints(0);
++
++            glfwGetFramebufferSize(window, width, height);
++
++            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(width.get(0), height.get(0));
+ 
+             VkExtent2D minExtent = capabilities.minImageExtent();
+             VkExtent2D maxExtent = capabilities.maxImageExtent();
+@@ -1075,6 +1141,17 @@ public class Ch15HelloTriangle {
+             return buffer.rewind();
+         }
+ 
++        private PointerBuffer asPointerBuffer(List<? extends Pointer> list) {
++
++            MemoryStack stack = stackGet();
++
++            PointerBuffer buffer = stack.mallocPointer(list.size());
++
++            list.forEach(buffer::put);
++
++            return buffer.rewind();
++        }
++
+         private PointerBuffer getRequiredExtensions() {
+ 
+             PointerBuffer glfwExtensions = glfwGetRequiredInstanceExtensions();

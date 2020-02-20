@@ -1,0 +1,154 @@
+diff --git a/Ch04LogicalDevice.java b/Ch05WindowSurface.java
+index 56139c6..af884c0 100644
+--- a/Ch04LogicalDevice.java
++++ b/Ch05WindowSurface.java
+@@ -12,15 +12,18 @@ import java.util.stream.IntStream;
+ 
+ import static java.util.stream.Collectors.toSet;
+ import static org.lwjgl.glfw.GLFW.*;
++import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
+ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+ import static org.lwjgl.system.Configuration.DEBUG;
+ import static org.lwjgl.system.MemoryStack.stackGet;
+ import static org.lwjgl.system.MemoryStack.stackPush;
+ import static org.lwjgl.system.MemoryUtil.NULL;
+ import static org.lwjgl.vulkan.EXTDebugUtils.*;
++import static org.lwjgl.vulkan.KHRSurface.vkDestroySurfaceKHR;
++import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch04LogicalDevice {
++public class Ch05WindowSurface {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -71,11 +74,15 @@ public class Ch04LogicalDevice {
+ 
+             // We use Integer to use null as the empty value
+             private Integer graphicsFamily;
++            private Integer presentFamily;
+ 
+             private boolean isComplete() {
+-                return graphicsFamily != null;
++                return graphicsFamily != null && presentFamily != null;
+             }
+ 
++            public int[] unique() {
++                return IntStream.of(graphicsFamily, presentFamily).distinct().toArray();
++            }
+         }
+ 
+         // ======= FIELDS ======= //
+@@ -83,9 +90,11 @@ public class Ch04LogicalDevice {
+         private long window;
+         private VkInstance instance;
+         private long debugMessenger;
++        private long surface;
+         private VkPhysicalDevice physicalDevice;
+         private VkDevice device;
+         private VkQueue graphicsQueue;
++        private VkQueue presentQueue;
+ 
+         // ======= METHODS ======= //
+ 
+@@ -117,6 +126,7 @@ public class Ch04LogicalDevice {
+         private void initVulkan() {
+             createInstance();
+             setupDebugMessenger();
++            createSurface();
+             pickPhysicalDevice();
+             createLogicalDevice();
+         }
+@@ -137,6 +147,8 @@ public class Ch04LogicalDevice {
+                 destroyDebugUtilsMessengerEXT(instance, debugMessenger, null);
+             }
+ 
++            vkDestroySurfaceKHR(instance, surface, null);
++
+             vkDestroyInstance(instance, null);
+ 
+             glfwDestroyWindow(window);
+@@ -219,6 +231,20 @@ public class Ch04LogicalDevice {
+             }
+         }
+ 
++        private void createSurface() {
++
++            try(MemoryStack stack = stackPush()) {
++
++                LongBuffer pSurface = stack.longs(VK_NULL_HANDLE);
++
++                if(glfwCreateWindowSurface(instance, window, null, pSurface) != VK_SUCCESS) {
++                    throw new RuntimeException("Failed to create window surface");
++                }
++
++                surface = pSurface.get(0);
++            }
++        }
++
+         private void pickPhysicalDevice() {
+ 
+             try(MemoryStack stack = stackPush()) {
+@@ -260,11 +286,16 @@ public class Ch04LogicalDevice {
+ 
+                 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+ 
+-                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(1, stack);
++                int[] uniqueQueueFamilies = indices.unique();
++
++                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(uniqueQueueFamilies.length, stack);
+ 
+-                queueCreateInfos.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
+-                queueCreateInfos.queueFamilyIndex(indices.graphicsFamily);
+-                queueCreateInfos.pQueuePriorities(stack.floats(1.0f));
++                for(int i = 0;i < uniqueQueueFamilies.length;i++) {
++                    VkDeviceQueueCreateInfo queueCreateInfo = queueCreateInfos.get(i);
++                    queueCreateInfo.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
++                    queueCreateInfo.queueFamilyIndex(uniqueQueueFamilies[i]);
++                    queueCreateInfo.pQueuePriorities(stack.floats(1.0f));
++                }
+ 
+                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+ 
+@@ -288,11 +319,13 @@ public class Ch04LogicalDevice {
+ 
+                 device = new VkDevice(pDevice.get(0), physicalDevice, createInfo);
+ 
+-                PointerBuffer pGraphicsQueue = stack.pointers(VK_NULL_HANDLE);
++                PointerBuffer pQueue = stack.pointers(VK_NULL_HANDLE);
+ 
+-                vkGetDeviceQueue(device, indices.graphicsFamily, 0, pGraphicsQueue);
++                vkGetDeviceQueue(device, indices.graphicsFamily, 0, pQueue);
++                graphicsQueue = new VkQueue(pQueue.get(0), device);
+ 
+-                graphicsQueue = new VkQueue(pGraphicsQueue.get(0), device);
++                vkGetDeviceQueue(device, indices.presentFamily, 0, pQueue);
++                presentQueue = new VkQueue(pQueue.get(0), device);
+             }
+         }
+ 
+@@ -317,10 +350,20 @@ public class Ch04LogicalDevice {
+ 
+                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
+ 
+-                IntStream.range(0, queueFamilies.capacity())
+-                        .filter(index -> (queueFamilies.get(index).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0)
+-                        .findFirst()
+-                        .ifPresent(index -> indices.graphicsFamily = index);
++                IntBuffer presentSupport = stack.ints(VK_FALSE);
++
++                for(int i = 0;i < queueFamilies.capacity() || !indices.isComplete();i++) {
++
++                    if((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {
++                        indices.graphicsFamily = i;
++                    }
++
++                    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, presentSupport);
++
++                    if(presentSupport.get(0) == VK_TRUE) {
++                        indices.presentFamily = i;
++                    }
++                }
+ 
+                 return indices;
+             }

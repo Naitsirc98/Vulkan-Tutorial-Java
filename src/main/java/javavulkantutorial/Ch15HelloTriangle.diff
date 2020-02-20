@@ -1,0 +1,209 @@
+diff --git a/Ch14CommandBuffers.java b/Ch15HelloTriangle.java
+index b444d5c..923b742 100644
+--- a/Ch14CommandBuffers.java
++++ b/Ch15HelloTriangle.java
+@@ -22,21 +22,24 @@ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+ import static org.lwjgl.system.Configuration.DEBUG;
+ import static org.lwjgl.system.MemoryStack.stackGet;
+ import static org.lwjgl.system.MemoryStack.stackPush;
+-import static org.lwjgl.system.MemoryUtil.NULL;
++import static org.lwjgl.system.MemoryUtil.*;
+ import static org.lwjgl.vulkan.EXTDebugUtils.*;
+ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch14CommandBuffers {
++public class Ch15HelloTriangle {
+ 
+     private static class HelloTriangleApplication {
+ 
+         private static final int UINT32_MAX = 0xFFFFFFFF;
++        private static final long UINT64_MAX = 0xFFFFFFFFFFFFFFFFL;
+ 
+         private static final int WIDTH = 800;
+         private static final int HEIGHT = 600;
+ 
++        private static final int MAX_FRAMES_IN_FLIGHT = 2;
++
+         private static final boolean ENABLE_VALIDATION_LAYERS = DEBUG.get(true);
+ 
+         private static final Set<String> VALIDATION_LAYERS;
+@@ -137,6 +140,10 @@ public class Ch14CommandBuffers {
+         private long commandPool;
+         private List<VkCommandBuffer> commandBuffers;
+ 
++        private List<Frame> inFlightFrames;
++        private Map<Integer, Frame> imagesInFlight;
++        private int currentFrame;
++
+         // ======= METHODS ======= //
+ 
+         public void run() {
+@@ -177,18 +184,30 @@ public class Ch14CommandBuffers {
+             createFramebuffers();
+             createCommandPool();
+             createCommandBuffers();
++            createSyncObjects();
+         }
+ 
+         private void mainLoop() {
+ 
+             while(!glfwWindowShouldClose(window)) {
+                 glfwPollEvents();
++                drawFrame();
+             }
+ 
++            // Wait for the device to complete all operations before release resources
++            vkDeviceWaitIdle(device);
+         }
+ 
+         private void cleanup() {
+ 
++            inFlightFrames.forEach(frame -> {
++
++                vkDestroySemaphore(device, frame.renderFinishedSemaphore(), null);
++                vkDestroySemaphore(device, frame.imageAvailableSemaphore(), null);
++                vkDestroyFence(device, frame.fence(), null);
++            });
++            imagesInFlight.clear();
++
+             vkDestroyCommandPool(device, commandPool, null);
+ 
+             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
+@@ -524,10 +543,19 @@ public class Ch14CommandBuffers {
+                 subpass.colorAttachmentCount(1);
+                 subpass.pColorAttachments(colorAttachmentRef);
+ 
++                VkSubpassDependency.Buffer dependency = VkSubpassDependency.callocStack(1, stack);
++                dependency.srcSubpass(VK_SUBPASS_EXTERNAL);
++                dependency.dstSubpass(0);
++                dependency.srcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
++                dependency.srcAccessMask(0);
++                dependency.dstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
++                dependency.dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
++
+                 VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
+                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
+                 renderPassInfo.pAttachments(colorAttachment);
+                 renderPassInfo.pSubpasses(subpass);
++                renderPassInfo.pDependencies(dependency);
+ 
+                 LongBuffer pRenderPass = stack.mallocLong(1);
+ 
+@@ -747,7 +775,7 @@ public class Ch14CommandBuffers {
+                 PointerBuffer pCommandBuffers = stack.mallocPointer(commandBuffersCount);
+ 
+                 if(vkAllocateCommandBuffers(device, allocInfo, pCommandBuffers) != VK_SUCCESS) {
+-                    throw new RuntimeException("Fialed to allocate command buffers");
++                    throw new RuntimeException("Failed to allocate command buffers");
+                 }
+ 
+                 for(int i = 0;i < commandBuffersCount;i++) {
+@@ -759,11 +787,14 @@ public class Ch14CommandBuffers {
+ 
+                 VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.callocStack(stack);
+                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
++
+                 renderPassInfo.renderPass(renderPass);
++
+                 VkRect2D renderArea = VkRect2D.callocStack(stack);
+                 renderArea.offset(VkOffset2D.callocStack(stack).set(0, 0));
+                 renderArea.extent(swapChainExtent);
+                 renderPassInfo.renderArea(renderArea);
++
+                 VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
+                 clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
+                 renderPassInfo.pClearValues(clearValues);
+@@ -797,6 +828,91 @@ public class Ch14CommandBuffers {
+             }
+         }
+ 
++        private void createSyncObjects() {
++
++            inFlightFrames = new ArrayList<>(MAX_FRAMES_IN_FLIGHT);
++            imagesInFlight = new HashMap<>(swapChainImages.size());
++
++            try(MemoryStack stack = stackPush()) {
++
++                VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.callocStack(stack);
++                semaphoreInfo.sType(VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
++
++                VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.callocStack(stack);
++                fenceInfo.sType(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
++                fenceInfo.flags(VK_FENCE_CREATE_SIGNALED_BIT);
++
++                LongBuffer pImageAvailableSemaphore = stack.mallocLong(1);
++                LongBuffer pRenderFinishedSemaphore = stack.mallocLong(1);
++                LongBuffer pFence = stack.mallocLong(1);
++
++                for(int i = 0;i < MAX_FRAMES_IN_FLIGHT;i++) {
++
++                    if(vkCreateSemaphore(device, semaphoreInfo, null, pImageAvailableSemaphore) != VK_SUCCESS
++                    || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
++                    || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
++
++                        throw new RuntimeException("Failed to create synchronization objects for the frame " + i);
++                    }
++
++                    inFlightFrames.add(new Frame(pImageAvailableSemaphore.get(0), pRenderFinishedSemaphore.get(0), pFence.get(0)));
++                }
++
++            }
++        }
++
++        private void drawFrame() {
++
++            try(MemoryStack stack = stackPush()) {
++
++                Frame thisFrame = inFlightFrames.get(currentFrame);
++
++                vkWaitForFences(device, thisFrame.pFence(), true, UINT64_MAX);
++
++                IntBuffer pImageIndex = stack.mallocInt(1);
++
++                vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, thisFrame.imageAvailableSemaphore(), VK_NULL_HANDLE, pImageIndex);
++                final int imageIndex = pImageIndex.get(0);
++
++                if(imagesInFlight.containsKey(imageIndex)) {
++                    vkWaitForFences(device, imagesInFlight.get(imageIndex).fence(), true, UINT64_MAX);
++                }
++
++                imagesInFlight.put(imageIndex, thisFrame);
++
++                VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
++                submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
++
++                submitInfo.waitSemaphoreCount(1);
++                submitInfo.pWaitSemaphores(thisFrame.pImageAvailableSemaphore());
++                submitInfo.pWaitDstStageMask(stack.ints(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT));
++
++                submitInfo.pSignalSemaphores(thisFrame.pRenderFinishedSemaphore());
++
++                submitInfo.pCommandBuffers(stack.pointers(commandBuffers.get(imageIndex)));
++
++                vkResetFences(device, thisFrame.pFence());
++
++                if(vkQueueSubmit(graphicsQueue, submitInfo, thisFrame.fence()) != VK_SUCCESS) {
++                    throw new RuntimeException("Failed to submit draw command buffer");
++                }
++
++                VkPresentInfoKHR presentInfo = VkPresentInfoKHR.callocStack(stack);
++                presentInfo.sType(VK_STRUCTURE_TYPE_PRESENT_INFO_KHR);
++
++                presentInfo.pWaitSemaphores(thisFrame.pRenderFinishedSemaphore());
++
++                presentInfo.swapchainCount(1);
++                presentInfo.pSwapchains(stack.longs(swapChain));
++
++                presentInfo.pImageIndices(pImageIndex);
++
++                vkQueuePresentKHR(presentQueue, presentInfo);
++
++                currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
++            }
++        }
++
+         private long createShaderModule(ByteBuffer spirvCode) {
+ 
+             try(MemoryStack stack = stackPush()) {

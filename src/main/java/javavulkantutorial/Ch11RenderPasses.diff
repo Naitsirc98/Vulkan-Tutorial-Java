@@ -1,0 +1,83 @@
+diff --git a/Ch10FixedFunctions.java b/Ch11RenderPasses.java
+index ccf1a1f..2fac84b 100644
+--- a/Ch10FixedFunctions.java
++++ b/Ch11RenderPasses.java
+@@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch10FixedFunctions {
++public class Ch11RenderPasses {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -129,6 +129,7 @@ public class Ch10FixedFunctions {
+         private int swapChainImageFormat;
+         private VkExtent2D swapChainExtent;
+ 
++        private long renderPass;
+         private long pipelineLayout;
+ 
+         // ======= METHODS ======= //
+@@ -166,6 +167,7 @@ public class Ch10FixedFunctions {
+             createLogicalDevice();
+             createSwapChain();
+             createImageViews();
++            createRenderPass();
+             createGraphicsPipeline();
+         }
+ 
+@@ -181,6 +183,8 @@ public class Ch10FixedFunctions {
+ 
+             vkDestroyPipelineLayout(device, pipelineLayout, null);
+ 
++            vkDestroyRenderPass(device, renderPass, null);
++
+             swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
+ 
+             vkDestroySwapchainKHR(device, swapChain, null);
+@@ -483,6 +487,44 @@ public class Ch10FixedFunctions {
+             }
+         }
+ 
++        private void createRenderPass() {
++
++            try(MemoryStack stack = stackPush()) {
++
++                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
++                colorAttachment.format(swapChainImageFormat);
++                colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
++                colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
++                colorAttachment.storeOp(VK_ATTACHMENT_STORE_OP_STORE);
++                colorAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
++                colorAttachment.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
++                colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
++                colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
++
++                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
++                colorAttachmentRef.attachment(0);
++                colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
++
++                VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
++                subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
++                subpass.colorAttachmentCount(1);
++                subpass.pColorAttachments(colorAttachmentRef);
++
++                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
++                renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
++                renderPassInfo.pAttachments(colorAttachment);
++                renderPassInfo.pSubpasses(subpass);
++
++                LongBuffer pRenderPass = stack.mallocLong(1);
++
++                if(vkCreateRenderPass(device, renderPassInfo, null, pRenderPass) != VK_SUCCESS) {
++                    throw new RuntimeException("Failed to create render pass");
++                }
++
++                renderPass = pRenderPass.get(0);
++            }
++        }
++
+         private void createGraphicsPipeline() {
+ 
+             try(MemoryStack stack = stackPush()) {

@@ -1,0 +1,59 @@
+diff --git a/Ch11RenderPasses.java b/Ch12GraphicsPipelineComplete.java
+index 2fac84b..8ff7d9c 100644
+--- a/Ch11RenderPasses.java
++++ b/Ch12GraphicsPipelineComplete.java
+@@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch11RenderPasses {
++public class Ch12GraphicsPipelineComplete {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -131,6 +131,7 @@ public class Ch11RenderPasses {
+ 
+         private long renderPass;
+         private long pipelineLayout;
++        private long graphicsPipeline;
+ 
+         // ======= METHODS ======= //
+ 
+@@ -181,6 +182,8 @@ public class Ch11RenderPasses {
+ 
+         private void cleanup() {
+ 
++            vkDestroyPipeline(device, graphicsPipeline, null);
++
+             vkDestroyPipelineLayout(device, pipelineLayout, null);
+ 
+             vkDestroyRenderPass(device, renderPass, null);
+@@ -631,6 +634,28 @@ public class Ch11RenderPasses {
+ 
+                 pipelineLayout = pPipelineLayout.get(0);
+ 
++                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.callocStack(1, stack);
++                pipelineInfo.sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
++                pipelineInfo.pStages(shaderStages);
++                pipelineInfo.pVertexInputState(vertexInputInfo);
++                pipelineInfo.pInputAssemblyState(inputAssembly);
++                pipelineInfo.pViewportState(viewportState);
++                pipelineInfo.pRasterizationState(rasterizer);
++                pipelineInfo.pMultisampleState(multisampling);
++                pipelineInfo.pColorBlendState(colorBlending);
++                pipelineInfo.layout(pipelineLayout);
++                pipelineInfo.renderPass(renderPass);
++                pipelineInfo.subpass(0);
++                pipelineInfo.basePipelineHandle(VK_NULL_HANDLE);
++                pipelineInfo.basePipelineIndex(-1);
++
++                LongBuffer pGraphicsPipeline = stack.mallocLong(1);
++
++                if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, pipelineInfo, null, pGraphicsPipeline) != VK_SUCCESS) {
++                    throw new RuntimeException("Failed to create graphics pipeline");
++                }
++
++                graphicsPipeline = pGraphicsPipeline.get(0);
+ 
+                 // ===> RELEASE RESOURCES <===
+ 

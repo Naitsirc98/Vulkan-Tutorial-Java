@@ -1,0 +1,95 @@
+diff --git a/Ch08GraphicsPipeline.java b/Ch09ShaderModules.java
+index a960f21..721fa95 100644
+--- a/Ch08GraphicsPipeline.java
++++ b/Ch09ShaderModules.java
+@@ -1,9 +1,11 @@
+ package javavulkantutorial;
+ 
++import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+ import org.lwjgl.PointerBuffer;
+ import org.lwjgl.system.MemoryStack;
+ import org.lwjgl.vulkan.*;
+ 
++import java.nio.ByteBuffer;
+ import java.nio.IntBuffer;
+ import java.nio.LongBuffer;
+ import java.util.*;
+@@ -11,6 +13,9 @@ import java.util.stream.IntStream;
+ import java.util.stream.Stream;
+ 
+ import static java.util.stream.Collectors.toSet;
++import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
++import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
++import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
+ import static org.lwjgl.glfw.GLFW.*;
+ import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
+ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+@@ -23,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch08GraphicsPipeline {
++public class Ch09ShaderModules {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -476,6 +481,59 @@ public class Ch08GraphicsPipeline {
+ 
+         private void createGraphicsPipeline() {
+ 
++            try(MemoryStack stack = stackPush()) {
++
++                // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
++                // Check ShaderSPIRVUtils class to see how it can be done
++                SPIRV vertShaderSPIRV = compileShaderFile("shaders/09_shader_base.vert", VERTEX_SHADER);
++                SPIRV fragShaderSPIRV = compileShaderFile("shaders/09_shader_base.frag", FRAGMENT_SHADER);
++
++                long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
++                long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
++
++                ByteBuffer entryPoint = stack.UTF8("main");
++
++                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.callocStack(2, stack);
++
++                VkPipelineShaderStageCreateInfo vertShaderStageInfo = shaderStages.get(0);
++
++                vertShaderStageInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
++                vertShaderStageInfo.stage(VK_SHADER_STAGE_VERTEX_BIT);
++                vertShaderStageInfo.module(vertShaderModule);
++                vertShaderStageInfo.pName(entryPoint);
++
++                VkPipelineShaderStageCreateInfo fragShaderStageInfo = shaderStages.get(1);
++
++                fragShaderStageInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
++                fragShaderStageInfo.stage(VK_SHADER_STAGE_FRAGMENT_BIT);
++                fragShaderStageInfo.module(fragShaderModule);
++                fragShaderStageInfo.pName(entryPoint);
++
++                vkDestroyShaderModule(device, vertShaderModule, null);
++                vkDestroyShaderModule(device, fragShaderModule, null);
++
++                vertShaderSPIRV.free();
++                fragShaderSPIRV.free();
++            }
++        }
++
++        private long createShaderModule(ByteBuffer spirvCode) {
++
++            try(MemoryStack stack = stackPush()) {
++
++                VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.callocStack(stack);
++
++                createInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
++                createInfo.pCode(spirvCode);
++
++                LongBuffer pShaderModule = stack.mallocLong(1);
++
++                if(vkCreateShaderModule(device, createInfo, null, pShaderModule) != VK_SUCCESS) {
++                    throw new RuntimeException("Failed to create shader module");
++                }
++
++                return pShaderModule.get(0);
++            }
+         }
+ 
+         private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {

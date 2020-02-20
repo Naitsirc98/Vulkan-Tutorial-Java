@@ -1,0 +1,81 @@
+diff --git a/Ch12GraphicsPipelineComplete.java b/Ch13Framebuffers.java
+index 8ff7d9c..38cf106 100644
+--- a/Ch12GraphicsPipelineComplete.java
++++ b/Ch13Framebuffers.java
+@@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
+-public class Ch12GraphicsPipelineComplete {
++public class Ch13Framebuffers {
+ 
+     private static class HelloTriangleApplication {
+ 
+@@ -125,9 +125,10 @@ public class Ch12GraphicsPipelineComplete {
+ 
+         private long swapChain;
+         private List<Long> swapChainImages;
+-        private List<Long> swapChainImageViews;
+         private int swapChainImageFormat;
+         private VkExtent2D swapChainExtent;
++        private List<Long> swapChainImageViews;
++        private List<Long> swapChainFramebuffers;
+ 
+         private long renderPass;
+         private long pipelineLayout;
+@@ -170,6 +171,7 @@ public class Ch12GraphicsPipelineComplete {
+             createImageViews();
+             createRenderPass();
+             createGraphicsPipeline();
++            createFramebuffers();
+         }
+ 
+         private void mainLoop() {
+@@ -182,6 +184,8 @@ public class Ch12GraphicsPipelineComplete {
+ 
+         private void cleanup() {
+ 
++            swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
++
+             vkDestroyPipeline(device, graphicsPipeline, null);
+ 
+             vkDestroyPipelineLayout(device, pipelineLayout, null);
+@@ -667,6 +671,38 @@ public class Ch12GraphicsPipelineComplete {
+             }
+         }
+ 
++        private void createFramebuffers() {
++
++            swapChainFramebuffers = new ArrayList<>(swapChainImageViews.size());
++
++            try(MemoryStack stack = stackPush()) {
++
++                LongBuffer attachments = stack.mallocLong(1);
++                LongBuffer pFramebuffer = stack.mallocLong(1);
++
++                // Lets allocate the create info struct once and just update the pAttachments field each iteration
++                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.callocStack(stack);
++                framebufferInfo.sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
++                framebufferInfo.renderPass(renderPass);
++                framebufferInfo.width(swapChainExtent.width());
++                framebufferInfo.height(swapChainExtent.height());
++                framebufferInfo.layers(1);
++
++                for(long imageView : swapChainImageViews) {
++
++                    attachments.put(0, imageView);
++
++                    framebufferInfo.pAttachments(attachments);
++
++                    if(vkCreateFramebuffer(device, framebufferInfo, null, pFramebuffer) != VK_SUCCESS) {
++                        throw new RuntimeException("Failed to create framebuffer");
++                    }
++
++                    swapChainFramebuffers.add(pFramebuffer.get(0));
++                }
++            }
++        }
++
+         private long createShaderModule(ByteBuffer spirvCode) {
+ 
+             try(MemoryStack stack = stackPush()) {
