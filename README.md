@@ -60,7 +60,7 @@ Every chapter have its own Java file to make them independent to each other. How
   - [ModelLoader](src/main/java/javavulkantutorial/ModelLoader.java): An utility class for loading 3D models. They are loaded with [Assimp](http://www.assimp.org/).
   - [ShaderSPIRVUtils](src/main/java/javavulkantutorial/ShaderSPIRVUtils.java): An utility class for compiling GLSL shaders into SPIRV binaries at runtime.
   
-For math stuff I will be using [JOML](https://github.com/JOML-CI/JOML), a Java library for graphics mathematics. Its very similar to [GLM](https://glm.g-truc.net/0.9.9/index.html).
+For maths calculations I will be using [JOML](https://github.com/JOML-CI/JOML), a Java math library for graphics mathematics. Its very similar to [GLM](https://glm.g-truc.net/0.9.9/index.html).
 
 Finally, each chapter have its own .diff file, so you can quickly see the changes made between chapters.
 
