@@ -10,12 +10,12 @@ These tutorials are written to be easily followed with the original ones. Howeve
 
 ## LWJGL Style
 
-If you don't know LWJGL, it may be difficult to you understand certain concepts and patterns you will see throughout this tutorials. I will briefly explain some of the most important
+If you don't know LWJGL, it may be difficult to you to understand certain concepts and patterns you will see throughout this tutorials. I will briefly explain some of the most important
 concepts you need to know to properly follow the code:
 
 ## Native handles
 
-Vulkan has its own handles named properly, such as VkImage, VkBuffer or VkCommandPool. These are unsigned integer numbers behind the scene, and because Java
+Vulkan has its own handles named properly, such as VkImage, VkBuffer or VkCommandPool. These are unsigned integer numbers behind the scenes, and because Java
 does not have typedefs, we need to use *long* as the type of all of those objects. For that reason, you will see lots of *long* variables.
 
 ## Pointers and references
@@ -54,11 +54,11 @@ System.out.println("width = " + width.get(0));
 System.out.println("height = " + height.get(0));
 ```
 
-Nice, we now can pass pointers to primitive values, but we are dynamically allocating 2 new objects for just 2 integers.
+Nice, now we can pass pointers to primitive values, but we are dynamically allocating 2 new objects for just 2 integers.
 And what if we only need these 2 variables for a short period of time? We need to wait for the Garbage Collector to get rid of those 
 disposable variables.
 
-Lucky for us, LWJGL solves this problem with its own memory management system. You can learn about that [here](https://github.com/LWJGL/lwjgl3-wiki/wiki/1.3.-Memory-FAQ).
+Luckily for us, LWJGL solves this problem with its own memory management system. You can learn about that [here](https://github.com/LWJGL/lwjgl3-wiki/wiki/1.3.-Memory-FAQ).
 
 ### Stack allocation
 
