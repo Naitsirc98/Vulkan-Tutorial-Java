@@ -53,7 +53,7 @@ Java port of the [great tutorial by Alexander Overvoorde](https://vulkan-tutoria
 
 These tutorials are written to be easily followed with the C++ tutorial. However, I've made some changes to fit the Java and LWJGL styles. The repository follows the same structure as in the [original one](https://github.com/Overv/VulkanTutorial/tree/master/code).
 
-Every chapter have its own Java file to make them independent of each other. However, there are some common classes that many of them need:
+Every chapter have its own Java file to make them independent to each other. However, there are some common classes that many of them need:
 
   - [AlignmentUtils](src/main/java/javavulkantutorial/AlignmentUtils.java): Utility class for dealing with uniform buffer object alignments.
   - [Frame](src/main/java/javavulkantutorial/Frame.java): A wrapper around all the necessary Vulkan handles for an in-flight frame (*image-available semaphore*, *render-finished semaphore* and a *fence*).
