@@ -39,15 +39,6 @@ index 38cf106..b444d5c 100644
              swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
  
              vkDestroyPipeline(device, graphicsPipeline, null);
-@@ -484,7 +491,7 @@ public class Ch13Framebuffers {
-                     createInfo.subresourceRange().baseArrayLayer(0);
-                     createInfo.subresourceRange().layerCount(1);
- 
--                    if(vkCreateImageView(device, createInfo, null, pImageView) != VK_SUCCESS) {
-+                    if (vkCreateImageView(device, createInfo, null, pImageView) != VK_SUCCESS) {
-                         throw new RuntimeException("Failed to create image views");
-                     }
- 
 @@ -703,6 +710,93 @@ public class Ch13Framebuffers {
              }
          }
