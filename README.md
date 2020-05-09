@@ -386,6 +386,7 @@ The shaders are compiled into SPIRV at runtime using [*shaderc*](https://github.
 
 ## Vertex buffers
 ### Vertex input description
+*(Will cause Validation Layer errors, but that will be fixed in the next chapter)*
 
 [Read the tutorial](https://vulkan-tutorial.com/Vertex_buffers/Vertex_input_description)
 
