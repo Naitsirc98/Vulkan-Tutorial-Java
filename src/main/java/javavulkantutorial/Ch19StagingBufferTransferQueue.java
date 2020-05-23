@@ -1372,7 +1372,8 @@ public class Ch19StagingBufferTransferQueue {
 
                     if((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {
                         indices.graphicsFamily = i;
-                    } else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
+                    }
+                    if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
                         indices.transferFamily = i;
                     }
 
