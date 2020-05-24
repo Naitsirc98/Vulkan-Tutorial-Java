@@ -72,7 +72,7 @@ public class Ch19StagingBufferTransferQueue {
         }
 
         private static final Set<String> DEVICE_EXTENSIONS = Stream.of(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-                .collect(toSet());
+            .collect(toSet());
 
 
 
@@ -86,7 +86,7 @@ public class Ch19StagingBufferTransferQueue {
         }
 
         private static int createDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT createInfo,
-                                                        VkAllocationCallbacks allocationCallbacks, LongBuffer pDebugMessenger) {
+                VkAllocationCallbacks allocationCallbacks, LongBuffer pDebugMessenger) {
 
             if(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT") != NULL) {
                 return vkCreateDebugUtilsMessengerEXT(instance, createInfo, allocationCallbacks, pDebugMessenger);
@@ -148,7 +148,7 @@ public class Ch19StagingBufferTransferQueue {
             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
 
                 VkVertexInputBindingDescription.Buffer bindingDescription =
-                        VkVertexInputBindingDescription.callocStack(1);
+                    VkVertexInputBindingDescription.callocStack(1);
 
                 bindingDescription.binding(0);
                 bindingDescription.stride(Vertex.SIZEOF);
@@ -160,7 +160,7 @@ public class Ch19StagingBufferTransferQueue {
             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
 
                 VkVertexInputAttributeDescription.Buffer attributeDescriptions =
-                        VkVertexInputAttributeDescription.callocStack(2);
+                    VkVertexInputAttributeDescription.callocStack(2);
 
                 // Position
                 VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
@@ -182,9 +182,9 @@ public class Ch19StagingBufferTransferQueue {
         }
 
         private static final Vertex[] VERTICES = {
-                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
+            new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
         };
 
         // ======= FIELDS ======= //
@@ -1150,11 +1150,11 @@ public class Ch19StagingBufferTransferQueue {
                 for(int i = 0;i < MAX_FRAMES_IN_FLIGHT;i++) {
 
                     if(vkCreateSemaphore(device, semaphoreInfo, null, pImageAvailableSemaphore) != VK_SUCCESS
-                    || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
-                    || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
+                            || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
+                            || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
 
                         throw new RuntimeException("Failed to create synchronization objects for the frame " + i);
-                    }
+                            }
 
                     inFlightFrames.add(new Frame(pImageAvailableSemaphore.get(0), pRenderFinishedSemaphore.get(0), pFence.get(0)));
                 }
@@ -1252,10 +1252,10 @@ public class Ch19StagingBufferTransferQueue {
 
         private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
             return availableFormats.stream()
-                    .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
-                    .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-                    .findAny()
-                    .orElse(availableFormats.get(0));
+                .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
+                .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                .findAny()
+                .orElse(availableFormats.get(0));
         }
 
         private int chooseSwapPresentMode(IntBuffer availablePresentModes) {
@@ -1372,7 +1372,13 @@ public class Ch19StagingBufferTransferQueue {
 
                     if((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {
                         indices.graphicsFamily = i;
-                    } else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
+                    }
+                    else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
+                        indices.transferFamily = i;
+                    }
+                    // In case of having only 1 queueFamily, use the same index since VK_QUEUE_GRAPHICS_BIT also implicitly
+                    // covers VK_QUEUE_TRANSFER_BIT
+                    if(queueFamilies.capacity() == 1){
                         indices.transferFamily = i;
                     }
 
@@ -1394,8 +1400,8 @@ public class Ch19StagingBufferTransferQueue {
             PointerBuffer buffer = stack.mallocPointer(collection.size());
 
             collection.stream()
-                    .map(stack::UTF8)
-                    .forEach(buffer::put);
+                .map(stack::UTF8)
+                .forEach(buffer::put);
 
             return buffer.rewind();
         }
@@ -1444,8 +1450,8 @@ public class Ch19StagingBufferTransferQueue {
                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
 
                 Set<String> availableLayerNames = availableLayers.stream()
-                        .map(VkLayerProperties::layerNameString)
-                        .collect(toSet());
+                    .map(VkLayerProperties::layerNameString)
+                    .collect(toSet());
 
                 return availableLayerNames.containsAll(VALIDATION_LAYERS);
             }
