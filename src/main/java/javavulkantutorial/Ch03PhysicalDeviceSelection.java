@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.lwjgl.glfw.GLFW.*;
@@ -269,10 +270,10 @@ public class Ch03PhysicalDeviceSelection {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
-                indices.graphicsFamily = queueFamilies.stream()
-                        .map(VkQueueFamilyProperties::queueFlags)
-                        .filter(queueFlags -> (queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0)
-                        .findAny().orElse(null);
+                IntStream.range(0, queueFamilies.capacity())
+                        .filter(index -> (queueFamilies.get(index).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0)
+                        .findFirst()
+                        .ifPresent(index -> indices.graphicsFamily = index);
 
                 return indices;
             }
