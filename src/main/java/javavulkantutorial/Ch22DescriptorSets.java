@@ -1531,7 +1531,12 @@ public class Ch22DescriptorSets {
 
                 VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.mallocStack(extensionCount.get(0), stack);
 
-                return availableExtensions.stream().collect(toSet()).containsAll(DEVICE_EXTENSIONS);
+                vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, availableExtensions);
+
+                return availableExtensions.stream()
+                        .map(VkExtensionProperties::extensionNameString)
+                        .collect(toSet())
+                        .containsAll(DEVICE_EXTENSIONS);
             }
         }
 

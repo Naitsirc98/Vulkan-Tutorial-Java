@@ -1343,10 +1343,14 @@ public class Ch20IndexBuffer {
 
                 VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.mallocStack(extensionCount.get(0), stack);
 
-                return availableExtensions.stream().collect(toSet()).containsAll(DEVICE_EXTENSIONS);
+                vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, availableExtensions);
+
+                return availableExtensions.stream()
+                        .map(VkExtensionProperties::extensionNameString)
+                        .collect(toSet())
+                        .containsAll(DEVICE_EXTENSIONS);
             }
         }
-
         private SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, MemoryStack stack) {
 
             SwapChainSupportDetails details = new SwapChainSupportDetails();
