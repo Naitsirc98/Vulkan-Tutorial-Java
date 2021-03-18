@@ -1,7 +1,7 @@
-diff --git a/Ch16SwapChainRecreation.java b/Ch17VertexInput.java
-index 7b191bc..88d3d79 100644
---- a/Ch16SwapChainRecreation.java
-+++ b/Ch17VertexInput.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java"
+index 853b5a5..6196313 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java"
 @@ -1,6 +1,10 @@
  package javavulkantutorial;
  
@@ -86,7 +86,7 @@ index 7b191bc..88d3d79 100644
          // ======= FIELDS ======= //
  
          private long window;
-@@ -621,8 +682,8 @@ public class Ch16SwapChainRecreation {
+@@ -616,8 +677,8 @@ public class Ch16SwapChainRecreation {
  
                  // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
                  // Check ShaderSPIRVUtils class to see how it can be done
@@ -97,7 +97,7 @@ index 7b191bc..88d3d79 100644
  
                  long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                  long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
-@@ -649,6 +710,8 @@ public class Ch16SwapChainRecreation {
+@@ -644,6 +705,8 @@ public class Ch16SwapChainRecreation {
  
                  VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
                  vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
@@ -106,7 +106,7 @@ index 7b191bc..88d3d79 100644
  
                  // ===> ASSEMBLY STAGE <===
  
-@@ -919,11 +982,14 @@ public class Ch16SwapChainRecreation {
+@@ -914,11 +977,14 @@ public class Ch16SwapChainRecreation {
  
                  IntBuffer pImageIndex = stack.mallocInt(1);
  
@@ -122,7 +122,7 @@ index 7b191bc..88d3d79 100644
                  }
  
                  final int imageIndex = pImageIndex.get(0);
-@@ -947,8 +1013,9 @@ public class Ch16SwapChainRecreation {
+@@ -942,8 +1008,9 @@ public class Ch16SwapChainRecreation {
  
                  vkResetFences(device, thisFrame.pFence());
  

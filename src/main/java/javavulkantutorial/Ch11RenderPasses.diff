@@ -1,7 +1,7 @@
-diff --git a/Ch10FixedFunctions.java b/Ch11RenderPasses.java
-index ccf1a1f..2fac84b 100644
---- a/Ch10FixedFunctions.java
-+++ b/Ch11RenderPasses.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch10FixedFunctions.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java"
+index 1254e60..139f975 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch10FixedFunctions.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -36,7 +36,7 @@ index ccf1a1f..2fac84b 100644
              swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
  
              vkDestroySwapchainKHR(device, swapChain, null);
-@@ -483,6 +487,44 @@ public class Ch10FixedFunctions {
+@@ -478,6 +482,44 @@ public class Ch10FixedFunctions {
              }
          }
  

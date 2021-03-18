@@ -305,22 +305,17 @@ public class Ch10FixedFunctions {
 
                 vkEnumeratePhysicalDevices(instance, deviceCount, ppPhysicalDevices);
 
-                VkPhysicalDevice device = null;
-
                 for(int i = 0;i < ppPhysicalDevices.capacity();i++) {
 
-                    device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
+                    VkPhysicalDevice device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
 
                     if(isDeviceSuitable(device)) {
-                        break;
+                        physicalDevice = device;
+                        return;
                     }
                 }
 
-                if(device == null) {
-                    throw new RuntimeException("Failed to find a suitable GPU");
-                }
-
-                physicalDevice = device;
+                throw new RuntimeException("Failed to find a suitable GPU");
             }
         }
 

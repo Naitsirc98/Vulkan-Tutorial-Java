@@ -1,7 +1,7 @@
-diff --git a/Ch06SwapChainCreation.java b/Ch07ImageViews.java
-index 1e954dc..8113641 100644
---- a/Ch06SwapChainCreation.java
-+++ b/Ch07ImageViews.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch06SwapChainCreation.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch07ImageViews.java"
+index 452b431..c0a6fcf 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch06SwapChainCreation.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch07ImageViews.java"
 @@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -36,7 +36,7 @@ index 1e954dc..8113641 100644
              vkDestroySwapchainKHR(device, swapChain, null);
  
              vkDestroyDevice(device, null);
-@@ -431,6 +435,44 @@ public class Ch06SwapChainCreation {
+@@ -426,6 +430,44 @@ public class Ch06SwapChainCreation {
              }
          }
  

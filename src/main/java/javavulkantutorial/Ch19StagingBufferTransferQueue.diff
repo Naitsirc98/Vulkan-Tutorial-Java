@@ -1,7 +1,7 @@
-diff --git a/Ch19StagingBuffer.java b/Ch19StagingBufferTransferQueue.java
-index abb3322..409ed27 100644
---- a/Ch19StagingBuffer.java
-+++ b/Ch19StagingBufferTransferQueue.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBuffer.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBufferTransferQueue.java"
+index 53490a8..9e8a59e 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBuffer.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBufferTransferQueue.java"
 @@ -25,14 +25,28 @@ import static org.lwjgl.glfw.GLFW.*;
  import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
  import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
@@ -33,6 +33,24 @@ index abb3322..409ed27 100644
  
      private static class HelloTriangleApplication {
  
+@@ -58,7 +72,7 @@ public class Ch19StagingBuffer {
+         }
+ 
+         private static final Set<String> DEVICE_EXTENSIONS = Stream.of(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+-                .collect(toSet());
++            .collect(toSet());
+ 
+ 
+ 
+@@ -72,7 +86,7 @@ public class Ch19StagingBuffer {
+         }
+ 
+         private static int createDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT createInfo,
+-                                                        VkAllocationCallbacks allocationCallbacks, LongBuffer pDebugMessenger) {
++                VkAllocationCallbacks allocationCallbacks, LongBuffer pDebugMessenger) {
+ 
+             if(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT") != NULL) {
+                 return vkCreateDebugUtilsMessengerEXT(instance, createInfo, allocationCallbacks, pDebugMessenger);
 @@ -94,17 +108,18 @@ public class Ch19StagingBuffer {
              // We use Integer to use null as the empty value
              private Integer graphicsFamily;
@@ -55,6 +73,37 @@ index abb3322..409ed27 100644
              }
          }
  
+@@ -133,7 +148,7 @@ public class Ch19StagingBuffer {
+             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
+ 
+                 VkVertexInputBindingDescription.Buffer bindingDescription =
+-                        VkVertexInputBindingDescription.callocStack(1);
++                    VkVertexInputBindingDescription.callocStack(1);
+ 
+                 bindingDescription.binding(0);
+                 bindingDescription.stride(Vertex.SIZEOF);
+@@ -145,7 +160,7 @@ public class Ch19StagingBuffer {
+             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
+ 
+                 VkVertexInputAttributeDescription.Buffer attributeDescriptions =
+-                        VkVertexInputAttributeDescription.callocStack(2);
++                    VkVertexInputAttributeDescription.callocStack(2);
+ 
+                 // Position
+                 VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
+@@ -167,9 +182,9 @@ public class Ch19StagingBuffer {
+         }
+ 
+         private static final Vertex[] VERTICES = {
+-                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
+-                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
+-                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
++            new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
++            new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
++            new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
+         };
+ 
+         // ======= FIELDS ======= //
 @@ -185,6 +200,7 @@ public class Ch19StagingBuffer {
  
          private VkQueue graphicsQueue;
@@ -87,7 +136,7 @@ index abb3322..409ed27 100644
              vkDestroyBuffer(device, vertexBuffer, null);
              vkFreeMemory(device, vertexBufferMemory, null);
  
-@@ -524,6 +545,9 @@ public class Ch19StagingBuffer {
+@@ -519,6 +540,9 @@ public class Ch19StagingBuffer {
  
                  vkGetDeviceQueue(device, indices.presentFamily, 0, pQueue);
                  presentQueue = new VkQueue(pQueue.get(0), device);
@@ -97,7 +146,7 @@ index abb3322..409ed27 100644
              }
          }
  
-@@ -870,8 +894,36 @@ public class Ch19StagingBuffer {
+@@ -865,8 +889,36 @@ public class Ch19StagingBuffer {
                  if (vkCreateCommandPool(device, poolInfo, null, pCommandPool) != VK_SUCCESS) {
                      throw new RuntimeException("Failed to create command pool");
                  }
@@ -135,7 +184,7 @@ index abb3322..409ed27 100644
              }
          }
  
-@@ -924,7 +976,10 @@ public class Ch19StagingBuffer {
+@@ -919,7 +971,10 @@ public class Ch19StagingBuffer {
                  bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
                  bufferInfo.size(size);
                  bufferInfo.usage(usage);
@@ -147,7 +196,7 @@ index abb3322..409ed27 100644
  
                  if(vkCreateBuffer(device, bufferInfo, null, pBuffer) != VK_SUCCESS) {
                      throw new RuntimeException("Failed to create vertex buffer");
-@@ -950,39 +1005,28 @@ public class Ch19StagingBuffer {
+@@ -945,39 +1000,28 @@ public class Ch19StagingBuffer {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -194,12 +243,70 @@ index abb3322..409ed27 100644
              }
          }
  
-@@ -1328,6 +1372,8 @@ public class Ch19StagingBuffer {
+@@ -1101,11 +1145,11 @@ public class Ch19StagingBuffer {
+                 for(int i = 0;i < MAX_FRAMES_IN_FLIGHT;i++) {
  
+                     if(vkCreateSemaphore(device, semaphoreInfo, null, pImageAvailableSemaphore) != VK_SUCCESS
+-                    || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
+-                    || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
++                            || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
++                            || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
+ 
+                         throw new RuntimeException("Failed to create synchronization objects for the frame " + i);
+-                    }
++                            }
+ 
+                     inFlightFrames.add(new Frame(pImageAvailableSemaphore.get(0), pRenderFinishedSemaphore.get(0), pFence.get(0)));
+                 }
+@@ -1203,10 +1247,10 @@ public class Ch19StagingBuffer {
+ 
+         private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
+             return availableFormats.stream()
+-                    .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
+-                    .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+-                    .findAny()
+-                    .orElse(availableFormats.get(0));
++                .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
++                .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
++                .findAny()
++                .orElse(availableFormats.get(0));
+         }
+ 
+         private int chooseSwapPresentMode(IntBuffer availablePresentModes) {
+@@ -1329,6 +1373,14 @@ public class Ch19StagingBuffer {
                      if((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {
                          indices.graphicsFamily = i;
-+                    } else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
-+                        indices.transferFamily = i;
                      }
++                    else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
++                        indices.transferFamily = i;
++                    }
++                    // In case of having only 1 queueFamily, use the same index since VK_QUEUE_GRAPHICS_BIT also implicitly
++                    // covers VK_QUEUE_TRANSFER_BIT
++                    if(queueFamilies.capacity() == 1){
++                        indices.transferFamily = i;
++                    }
  
                      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, presentSupport);
+ 
+@@ -1348,8 +1400,8 @@ public class Ch19StagingBuffer {
+             PointerBuffer buffer = stack.mallocPointer(collection.size());
+ 
+             collection.stream()
+-                    .map(stack::UTF8)
+-                    .forEach(buffer::put);
++                .map(stack::UTF8)
++                .forEach(buffer::put);
+ 
+             return buffer.rewind();
+         }
+@@ -1398,8 +1450,8 @@ public class Ch19StagingBuffer {
+                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
+ 
+                 Set<String> availableLayerNames = availableLayers.stream()
+-                        .map(VkLayerProperties::layerNameString)
+-                        .collect(toSet());
++                    .map(VkLayerProperties::layerNameString)
++                    .collect(toSet());
+ 
+                 return availableLayerNames.containsAll(VALIDATION_LAYERS);
+             }

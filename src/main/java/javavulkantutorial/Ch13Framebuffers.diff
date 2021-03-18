@@ -1,7 +1,7 @@
-diff --git a/Ch12GraphicsPipelineComplete.java b/Ch13Framebuffers.java
-index 8ff7d9c..38cf106 100644
---- a/Ch12GraphicsPipelineComplete.java
-+++ b/Ch13Framebuffers.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java"
+index 5acde35..d26b3ba 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -40,7 +40,7 @@ index 8ff7d9c..38cf106 100644
              vkDestroyPipeline(device, graphicsPipeline, null);
  
              vkDestroyPipelineLayout(device, pipelineLayout, null);
-@@ -667,6 +671,38 @@ public class Ch12GraphicsPipelineComplete {
+@@ -662,6 +666,38 @@ public class Ch12GraphicsPipelineComplete {
              }
          }
  

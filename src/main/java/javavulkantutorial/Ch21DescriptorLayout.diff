@@ -1,7 +1,7 @@
-diff --git a/Ch20IndexBuffer.java b/Ch21DescriptorLayout.java
-index 3ac7afe..53506a1 100644
---- a/Ch20IndexBuffer.java
-+++ b/Ch21DescriptorLayout.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java"
+index 9cfec51..983b4ac 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java"
 @@ -1,15 +1,13 @@
  package javavulkantutorial;
  
@@ -116,7 +116,7 @@ index 3ac7afe..53506a1 100644
              createCommandBuffers();
          }
  
-@@ -695,14 +717,38 @@ public class Ch20IndexBuffer {
+@@ -690,14 +712,38 @@ public class Ch20IndexBuffer {
              }
          }
  
@@ -157,7 +157,7 @@ index 3ac7afe..53506a1 100644
  
                  long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                  long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
-@@ -794,6 +840,7 @@ public class Ch20IndexBuffer {
+@@ -789,6 +835,7 @@ public class Ch20IndexBuffer {
  
                  VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
                  pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
@@ -165,7 +165,7 @@ index 3ac7afe..53506a1 100644
  
                  LongBuffer pPipelineLayout = stack.longs(VK_NULL_HANDLE);
  
-@@ -970,6 +1017,30 @@ public class Ch20IndexBuffer {
+@@ -965,6 +1012,30 @@ public class Ch20IndexBuffer {
              }
          }
  
@@ -196,7 +196,7 @@ index 3ac7afe..53506a1 100644
          private void createBuffer(long size, int usage, int properties, LongBuffer pBuffer, LongBuffer pBufferMemory) {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1060,6 +1131,15 @@ public class Ch20IndexBuffer {
+@@ -1055,6 +1126,15 @@ public class Ch20IndexBuffer {
              buffer.rewind();
          }
  
@@ -212,7 +212,7 @@ index 3ac7afe..53506a1 100644
          private int findMemoryType(int typeFilter, int properties) {
  
              VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
-@@ -1183,6 +1263,27 @@ public class Ch20IndexBuffer {
+@@ -1178,6 +1258,27 @@ public class Ch20IndexBuffer {
              }
          }
  
@@ -240,7 +240,7 @@ index 3ac7afe..53506a1 100644
          private void drawFrame() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1205,6 +1306,8 @@ public class Ch20IndexBuffer {
+@@ -1200,6 +1301,8 @@ public class Ch20IndexBuffer {
  
                  final int imageIndex = pImageIndex.get(0);
  

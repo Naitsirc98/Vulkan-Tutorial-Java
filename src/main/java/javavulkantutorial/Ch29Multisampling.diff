@@ -1,7 +1,7 @@
-diff --git a/Ch28Mipmapping.java b/Ch29Multisampling.java
-index ae5a795..7ad0d25 100644
---- a/Ch28Mipmapping.java
-+++ b/Ch29Multisampling.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch28Mipmapping.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch29Multisampling.java"
+index 0517dcc..57dfbf7 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch28Mipmapping.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch29Multisampling.java"
 @@ -45,7 +45,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -49,15 +49,15 @@ index ae5a795..7ad0d25 100644
              createDepthResources();
              createFramebuffers();
              createUniformBuffers();
-@@ -553,6 +563,7 @@ public class Ch28Mipmapping {
+@@ -543,6 +553,7 @@ public class Ch28Mipmapping {
+ 
+                     if(isDeviceSuitable(device)) {
+                         physicalDevice = device;
++                        msaaSamples = getMaxUsableSampleCount();
+                         return;
+                     }
                  }
- 
-                 physicalDevice = device;
-+                msaaSamples = getMaxUsableSampleCount();
-             }
-         }
- 
-@@ -575,6 +586,7 @@ public class Ch28Mipmapping {
+@@ -570,6 +581,7 @@ public class Ch28Mipmapping {
  
                  VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
                  deviceFeatures.samplerAnisotropy(true);
@@ -65,7 +65,7 @@ index ae5a795..7ad0d25 100644
  
                  VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
  
-@@ -691,30 +703,47 @@ public class Ch28Mipmapping {
+@@ -686,30 +698,47 @@ public class Ch28Mipmapping {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -118,7 +118,7 @@ index ae5a795..7ad0d25 100644
                  depthAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
                  depthAttachment.storeOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
                  depthAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-@@ -731,6 +760,7 @@ public class Ch28Mipmapping {
+@@ -726,6 +755,7 @@ public class Ch28Mipmapping {
                  subpass.colorAttachmentCount(1);
                  subpass.pColorAttachments(VkAttachmentReference.callocStack(1, stack).put(0, colorAttachmentRef));
                  subpass.pDepthStencilAttachment(depthAttachmentRef);
@@ -126,7 +126,7 @@ index ae5a795..7ad0d25 100644
  
                  VkSubpassDependency.Buffer dependency = VkSubpassDependency.callocStack(1, stack);
                  dependency.srcSubpass(VK_SUBPASS_EXTERNAL);
-@@ -868,8 +898,9 @@ public class Ch28Mipmapping {
+@@ -863,8 +893,9 @@ public class Ch28Mipmapping {
  
                  VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.callocStack(stack);
                  multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
@@ -138,7 +138,7 @@ index ae5a795..7ad0d25 100644
  
                  VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.callocStack(stack);
                  depthStencil.sType(VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
-@@ -948,7 +979,7 @@ public class Ch28Mipmapping {
+@@ -943,7 +974,7 @@ public class Ch28Mipmapping {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -147,7 +147,7 @@ index ae5a795..7ad0d25 100644
                  LongBuffer pFramebuffer = stack.mallocLong(1);
  
                  // Lets allocate the create info struct once and just update the pAttachments field each iteration
-@@ -961,7 +992,7 @@ public class Ch28Mipmapping {
+@@ -956,7 +987,7 @@ public class Ch28Mipmapping {
  
                  for(long imageView : swapChainImageViews) {
  
@@ -156,7 +156,7 @@ index ae5a795..7ad0d25 100644
  
                      framebufferInfo.pAttachments(attachments);
  
-@@ -994,6 +1025,32 @@ public class Ch28Mipmapping {
+@@ -989,6 +1020,32 @@ public class Ch28Mipmapping {
              }
          }
  
@@ -189,7 +189,7 @@ index ae5a795..7ad0d25 100644
          private void createDepthResources() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1006,6 +1063,7 @@ public class Ch28Mipmapping {
+@@ -1001,6 +1058,7 @@ public class Ch28Mipmapping {
                  createImage(
                          swapChainExtent.width(), swapChainExtent.height(),
                          1,
@@ -197,7 +197,7 @@ index ae5a795..7ad0d25 100644
                          depthFormat,
                          VK_IMAGE_TILING_OPTIMAL,
                          VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-@@ -1108,7 +1166,7 @@ public class Ch28Mipmapping {
+@@ -1103,7 +1161,7 @@ public class Ch28Mipmapping {
                  LongBuffer pTextureImageMemory = stack.mallocLong(1);
                  createImage(pWidth.get(0), pHeight.get(0),
                          mipLevels,
@@ -206,7 +206,7 @@ index ae5a795..7ad0d25 100644
                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                          pTextureImage,
-@@ -1234,6 +1292,39 @@ public class Ch28Mipmapping {
+@@ -1229,6 +1287,39 @@ public class Ch28Mipmapping {
              }
          }
  
@@ -246,7 +246,7 @@ index ae5a795..7ad0d25 100644
          private void createTextureImageView() {
              textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
          }
-@@ -1295,7 +1386,7 @@ public class Ch28Mipmapping {
+@@ -1290,7 +1381,7 @@ public class Ch28Mipmapping {
              }
          }
  
@@ -255,7 +255,7 @@ index ae5a795..7ad0d25 100644
                                   LongBuffer pTextureImage, LongBuffer pTextureImageMemory) {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1312,7 +1403,7 @@ public class Ch28Mipmapping {
+@@ -1307,7 +1398,7 @@ public class Ch28Mipmapping {
                  imageInfo.tiling(tiling);
                  imageInfo.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
                  imageInfo.usage(usage);
@@ -264,7 +264,7 @@ index ae5a795..7ad0d25 100644
                  imageInfo.sharingMode(VK_SHARING_MODE_EXCLUSIVE);
  
                  if(vkCreateImage(device, imageInfo, null, pTextureImage) != VK_SUCCESS) {
-@@ -1392,6 +1483,14 @@ public class Ch28Mipmapping {
+@@ -1387,6 +1478,14 @@ public class Ch28Mipmapping {
                      sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
                      destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
  

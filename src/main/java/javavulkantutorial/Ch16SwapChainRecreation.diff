@@ -1,7 +1,7 @@
-diff --git a/Ch15HelloTriangle.java b/Ch16SwapChainRecreation.java
-index 923b742..7b191bc 100644
---- a/Ch15HelloTriangle.java
-+++ b/Ch16SwapChainRecreation.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch15HelloTriangle.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java"
+index ee2617a..853b5a5 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch15HelloTriangle.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java"
 @@ -3,6 +3,7 @@ package javavulkantutorial;
  import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
  import org.lwjgl.PointerBuffer;
@@ -162,7 +162,7 @@ index 923b742..7b191bc 100644
          private void createInstance() {
  
              if(ENABLE_VALIDATION_LAYERS && !checkValidationLayerSupport()) {
-@@ -871,7 +919,13 @@ public class Ch15HelloTriangle {
+@@ -866,7 +914,13 @@ public class Ch15HelloTriangle {
  
                  IntBuffer pImageIndex = stack.mallocInt(1);
  
@@ -177,7 +177,7 @@ index 923b742..7b191bc 100644
                  final int imageIndex = pImageIndex.get(0);
  
                  if(imagesInFlight.containsKey(imageIndex)) {
-@@ -907,7 +961,14 @@ public class Ch15HelloTriangle {
+@@ -902,7 +956,14 @@ public class Ch15HelloTriangle {
  
                  presentInfo.pImageIndices(pImageIndex);
  
@@ -193,7 +193,7 @@ index 923b742..7b191bc 100644
  
                  currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
              }
-@@ -957,7 +1018,12 @@ public class Ch15HelloTriangle {
+@@ -952,7 +1013,12 @@ public class Ch15HelloTriangle {
                  return capabilities.currentExtent();
              }
  

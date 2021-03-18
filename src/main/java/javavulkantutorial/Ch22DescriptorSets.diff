@@ -1,7 +1,7 @@
-diff --git a/Ch21DescriptorLayout.java b/Ch22DescriptorSets.java
-index 53506a1..e81465e 100644
---- a/Ch21DescriptorLayout.java
-+++ b/Ch22DescriptorSets.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch22DescriptorSets.java"
+index 983b4ac..0b09c7a 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch22DescriptorSets.java"
 @@ -16,6 +16,8 @@ import java.util.stream.IntStream;
  import java.util.stream.Stream;
  
@@ -54,7 +54,7 @@ index 53506a1..e81465e 100644
              createCommandBuffers();
          }
  
-@@ -813,7 +822,7 @@ public class Ch21DescriptorLayout {
+@@ -808,7 +817,7 @@ public class Ch21DescriptorLayout {
                  rasterizer.polygonMode(VK_POLYGON_MODE_FILL);
                  rasterizer.lineWidth(1.0f);
                  rasterizer.cullMode(VK_CULL_MODE_BACK_BIT);
@@ -63,7 +63,7 @@ index 53506a1..e81465e 100644
                  rasterizer.depthBiasEnable(false);
  
                  // ===> MULTISAMPLING <===
-@@ -1041,6 +1050,79 @@ public class Ch21DescriptorLayout {
+@@ -1036,6 +1045,79 @@ public class Ch21DescriptorLayout {
              }
          }
  
@@ -143,7 +143,7 @@ index 53506a1..e81465e 100644
          private void createBuffer(long size, int usage, int properties, LongBuffer pBuffer, LongBuffer pBufferMemory) {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1136,8 +1218,8 @@ public class Ch21DescriptorLayout {
+@@ -1131,8 +1213,8 @@ public class Ch21DescriptorLayout {
              final int mat4Size = 16 * Float.BYTES;
  
              ubo.model.get(0, buffer);
@@ -154,7 +154,7 @@ index 53506a1..e81465e 100644
          }
  
          private int findMemoryType(int typeFilter, int properties) {
-@@ -1216,6 +1298,9 @@ public class Ch21DescriptorLayout {
+@@ -1211,6 +1293,9 @@ public class Ch21DescriptorLayout {
  
                          vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
  

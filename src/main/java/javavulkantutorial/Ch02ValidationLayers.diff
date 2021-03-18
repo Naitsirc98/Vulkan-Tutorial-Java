@@ -1,7 +1,7 @@
-diff --git a/Ch01InstanceCreation.java b/Ch02ValidationLayers.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch01InstanceCreation.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch02ValidationLayers.java"
 index 5ac42ac..3d085be 100644
---- a/Ch01InstanceCreation.java
-+++ b/Ch02ValidationLayers.java
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch01InstanceCreation.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch02ValidationLayers.java"
 @@ -2,28 +2,75 @@ package javavulkantutorial;
  
  import org.lwjgl.PointerBuffer;

@@ -1,7 +1,7 @@
-diff --git a/Ch19StagingBufferTransferQueue.java b/Ch20IndexBuffer.java
-index 409ed27..3ac7afe 100644
---- a/Ch19StagingBufferTransferQueue.java
-+++ b/Ch20IndexBuffer.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBufferTransferQueue.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java"
+index 9e8a59e..9cfec51 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBufferTransferQueue.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java"
 @@ -33,20 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -24,6 +24,24 @@ index 409ed27..3ac7afe 100644
  
      private static class HelloTriangleApplication {
  
+@@ -72,7 +59,7 @@ public class Ch19StagingBufferTransferQueue {
+         }
+ 
+         private static final Set<String> DEVICE_EXTENSIONS = Stream.of(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+-            .collect(toSet());
++                .collect(toSet());
+ 
+ 
+ 
+@@ -86,7 +73,7 @@ public class Ch19StagingBufferTransferQueue {
+         }
+ 
+         private static int createDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT createInfo,
+-                VkAllocationCallbacks allocationCallbacks, LongBuffer pDebugMessenger) {
++                                                        VkAllocationCallbacks allocationCallbacks, LongBuffer pDebugMessenger) {
+ 
+             if(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT") != NULL) {
+                 return vkCreateDebugUtilsMessengerEXT(instance, createInfo, allocationCallbacks, pDebugMessenger);
 @@ -108,18 +95,17 @@ public class Ch19StagingBufferTransferQueue {
              // We use Integer to use null as the empty value
              private Integer graphicsFamily;
@@ -46,13 +64,31 @@ index 409ed27..3ac7afe 100644
              }
          }
  
+@@ -148,7 +134,7 @@ public class Ch19StagingBufferTransferQueue {
+             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
+ 
+                 VkVertexInputBindingDescription.Buffer bindingDescription =
+-                    VkVertexInputBindingDescription.callocStack(1);
++                        VkVertexInputBindingDescription.callocStack(1);
+ 
+                 bindingDescription.binding(0);
+                 bindingDescription.stride(Vertex.SIZEOF);
+@@ -160,7 +146,7 @@ public class Ch19StagingBufferTransferQueue {
+             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
+ 
+                 VkVertexInputAttributeDescription.Buffer attributeDescriptions =
+-                    VkVertexInputAttributeDescription.callocStack(2);
++                        VkVertexInputAttributeDescription.callocStack(2);
+ 
+                 // Position
+                 VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
 @@ -182,9 +168,14 @@ public class Ch19StagingBufferTransferQueue {
          }
  
          private static final Vertex[] VERTICES = {
--                new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
--                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
--                new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
+-            new Vertex(new Vector2f(0.0f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
+-            new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
+-            new Vertex(new Vector2f(-0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f))
 +                new Vertex(new Vector2f(-0.5f, -0.5f), new Vector3f(1.0f, 0.0f, 0.0f)),
 +                new Vertex(new Vector2f(0.5f, -0.5f), new Vector3f(0.0f, 1.0f, 0.0f)),
 +                new Vertex(new Vector2f(0.5f, 0.5f), new Vector3f(0.0f, 0.0f, 1.0f)),
@@ -108,7 +144,7 @@ index 409ed27..3ac7afe 100644
  
              vkDestroyBuffer(device, vertexBuffer, null);
              vkFreeMemory(device, vertexBufferMemory, null);
-@@ -545,9 +537,6 @@ public class Ch19StagingBufferTransferQueue {
+@@ -540,9 +532,6 @@ public class Ch19StagingBufferTransferQueue {
  
                  vkGetDeviceQueue(device, indices.presentFamily, 0, pQueue);
                  presentQueue = new VkQueue(pQueue.get(0), device);
@@ -118,7 +154,7 @@ index 409ed27..3ac7afe 100644
              }
          }
  
-@@ -894,44 +883,57 @@ public class Ch19StagingBufferTransferQueue {
+@@ -889,44 +878,57 @@ public class Ch19StagingBufferTransferQueue {
                  if (vkCreateCommandPool(device, poolInfo, null, pCommandPool) != VK_SUCCESS) {
                      throw new RuntimeException("Failed to create command pool");
                  }
@@ -199,7 +235,7 @@ index 409ed27..3ac7afe 100644
  
                  LongBuffer pBuffer = stack.mallocLong(1);
                  LongBuffer pBufferMemory = stack.mallocLong(1);
-@@ -948,20 +950,20 @@ public class Ch19StagingBufferTransferQueue {
+@@ -943,20 +945,20 @@ public class Ch19StagingBufferTransferQueue {
  
                  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                  {
@@ -225,7 +261,7 @@ index 409ed27..3ac7afe 100644
  
                  vkDestroyBuffer(device, stagingBuffer, null);
                  vkFreeMemory(device, stagingBufferMemory, null);
-@@ -976,10 +978,7 @@ public class Ch19StagingBufferTransferQueue {
+@@ -971,10 +973,7 @@ public class Ch19StagingBufferTransferQueue {
                  bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
                  bufferInfo.size(size);
                  bufferInfo.usage(usage);
@@ -237,7 +273,7 @@ index 409ed27..3ac7afe 100644
  
                  if(vkCreateBuffer(device, bufferInfo, null, pBuffer) != VK_SUCCESS) {
                      throw new RuntimeException("Failed to create vertex buffer");
-@@ -1005,28 +1004,39 @@ public class Ch19StagingBufferTransferQueue {
+@@ -1000,28 +999,39 @@ public class Ch19StagingBufferTransferQueue {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -284,7 +320,7 @@ index 409ed27..3ac7afe 100644
              }
          }
  
-@@ -1041,6 +1051,15 @@ public class Ch19StagingBufferTransferQueue {
+@@ -1036,6 +1046,15 @@ public class Ch19StagingBufferTransferQueue {
              }
          }
  
@@ -300,7 +336,7 @@ index 409ed27..3ac7afe 100644
          private int findMemoryType(int typeFilter, int properties) {
  
              VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
-@@ -1115,7 +1134,9 @@ public class Ch19StagingBufferTransferQueue {
+@@ -1110,7 +1129,9 @@ public class Ch19StagingBufferTransferQueue {
                          LongBuffer offsets = stack.longs(0);
                          vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
  
@@ -311,12 +347,70 @@ index 409ed27..3ac7afe 100644
                      }
                      vkCmdEndRenderPass(commandBuffer);
  
-@@ -1372,8 +1393,6 @@ public class Ch19StagingBufferTransferQueue {
+@@ -1145,11 +1166,11 @@ public class Ch19StagingBufferTransferQueue {
+                 for(int i = 0;i < MAX_FRAMES_IN_FLIGHT;i++) {
  
+                     if(vkCreateSemaphore(device, semaphoreInfo, null, pImageAvailableSemaphore) != VK_SUCCESS
+-                            || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
+-                            || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
++                    || vkCreateSemaphore(device, semaphoreInfo, null, pRenderFinishedSemaphore) != VK_SUCCESS
++                    || vkCreateFence(device, fenceInfo, null, pFence) != VK_SUCCESS) {
+ 
+                         throw new RuntimeException("Failed to create synchronization objects for the frame " + i);
+-                            }
++                    }
+ 
+                     inFlightFrames.add(new Frame(pImageAvailableSemaphore.get(0), pRenderFinishedSemaphore.get(0), pFence.get(0)));
+                 }
+@@ -1247,10 +1268,10 @@ public class Ch19StagingBufferTransferQueue {
+ 
+         private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
+             return availableFormats.stream()
+-                .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
+-                .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+-                .findAny()
+-                .orElse(availableFormats.get(0));
++                    .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_UNORM)
++                    .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
++                    .findAny()
++                    .orElse(availableFormats.get(0));
+         }
+ 
+         private int chooseSwapPresentMode(IntBuffer availablePresentModes) {
+@@ -1373,14 +1394,6 @@ public class Ch19StagingBufferTransferQueue {
                      if((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {
                          indices.graphicsFamily = i;
--                    } else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
--                        indices.transferFamily = i;
                      }
+-                    else if((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT) != 0) {
+-                        indices.transferFamily = i;
+-                    }
+-                    // In case of having only 1 queueFamily, use the same index since VK_QUEUE_GRAPHICS_BIT also implicitly
+-                    // covers VK_QUEUE_TRANSFER_BIT
+-                    if(queueFamilies.capacity() == 1){
+-                        indices.transferFamily = i;
+-                    }
  
                      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, presentSupport);
+ 
+@@ -1400,8 +1413,8 @@ public class Ch19StagingBufferTransferQueue {
+             PointerBuffer buffer = stack.mallocPointer(collection.size());
+ 
+             collection.stream()
+-                .map(stack::UTF8)
+-                .forEach(buffer::put);
++                    .map(stack::UTF8)
++                    .forEach(buffer::put);
+ 
+             return buffer.rewind();
+         }
+@@ -1450,8 +1463,8 @@ public class Ch19StagingBufferTransferQueue {
+                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
+ 
+                 Set<String> availableLayerNames = availableLayers.stream()
+-                    .map(VkLayerProperties::layerNameString)
+-                    .collect(toSet());
++                        .map(VkLayerProperties::layerNameString)
++                        .collect(toSet());
+ 
+                 return availableLayerNames.containsAll(VALIDATION_LAYERS);
+             }

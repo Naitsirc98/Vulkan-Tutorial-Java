@@ -1,7 +1,7 @@
-diff --git a/Ch17VertexInput.java b/Ch18VertexBuffer.java
-index 88d3d79..dc70d83 100644
---- a/Ch17VertexInput.java
-+++ b/Ch18VertexBuffer.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch18VertexBuffer.java"
+index 6196313..60ee5a9 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch18VertexBuffer.java"
 @@ -33,7 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -40,7 +40,7 @@ index 88d3d79..dc70d83 100644
              inFlightFrames.forEach(frame -> {
  
                  vkDestroySemaphore(device, frame.renderFinishedSemaphore(), null);
-@@ -869,6 +877,76 @@ public class Ch17VertexInput {
+@@ -864,6 +872,76 @@ public class Ch17VertexInput {
              }
          }
  
@@ -117,7 +117,7 @@ index 88d3d79..dc70d83 100644
          private void createCommandBuffers() {
  
              final int commandBuffersCount = swapChainFramebuffers.size();
-@@ -925,7 +1003,11 @@ public class Ch17VertexInput {
+@@ -920,7 +998,11 @@ public class Ch17VertexInput {
                      {
                          vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
  

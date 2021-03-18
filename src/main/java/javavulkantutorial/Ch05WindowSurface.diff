@@ -1,7 +1,7 @@
-diff --git a/Ch04LogicalDevice.java b/Ch05WindowSurface.java
-index 56139c6..af884c0 100644
---- a/Ch04LogicalDevice.java
-+++ b/Ch05WindowSurface.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch04LogicalDevice.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch05WindowSurface.java"
+index 423530f..7ce3570 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch04LogicalDevice.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch05WindowSurface.java"
 @@ -12,15 +12,18 @@ import java.util.stream.IntStream;
  
  import static java.util.stream.Collectors.toSet;
@@ -89,7 +89,7 @@ index 56139c6..af884c0 100644
          private void pickPhysicalDevice() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -260,11 +286,16 @@ public class Ch04LogicalDevice {
+@@ -255,11 +281,16 @@ public class Ch04LogicalDevice {
  
                  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
  
@@ -110,7 +110,7 @@ index 56139c6..af884c0 100644
  
                  VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
  
-@@ -288,11 +319,13 @@ public class Ch04LogicalDevice {
+@@ -283,11 +314,13 @@ public class Ch04LogicalDevice {
  
                  device = new VkDevice(pDevice.get(0), physicalDevice, createInfo);
  
@@ -127,7 +127,7 @@ index 56139c6..af884c0 100644
              }
          }
  
-@@ -317,10 +350,20 @@ public class Ch04LogicalDevice {
+@@ -312,10 +345,20 @@ public class Ch04LogicalDevice {
  
                  vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
  

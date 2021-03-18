@@ -1,7 +1,7 @@
-diff --git a/Ch00BaseCode.java b/Ch01InstanceCreation.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch00BaseCode.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch01InstanceCreation.java"
 index 01343a9..5ac42ac 100644
---- a/Ch00BaseCode.java
-+++ b/Ch01InstanceCreation.java
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch00BaseCode.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch01InstanceCreation.java"
 @@ -1,9 +1,19 @@
  package javavulkantutorial;
  

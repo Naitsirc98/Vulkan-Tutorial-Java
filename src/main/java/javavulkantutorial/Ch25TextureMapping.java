@@ -1,43 +1,42 @@
 package javavulkantutorial;
 
-        import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
-        import org.joml.*;
-        import org.lwjgl.PointerBuffer;
-        import org.lwjgl.system.Configuration;
-        import org.lwjgl.system.MemoryStack;
-        import org.lwjgl.system.Pointer;
-        import org.lwjgl.vulkan.*;
+import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
+import org.joml.*;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.Pointer;
+import org.lwjgl.vulkan.*;
 
-        import java.lang.Math;
-        import java.net.URI;
-        import java.net.URISyntaxException;
-        import java.nio.ByteBuffer;
-        import java.nio.IntBuffer;
-        import java.nio.LongBuffer;
-        import java.nio.file.Paths;
-        import java.util.*;
-        import java.util.stream.IntStream;
-        import java.util.stream.Stream;
+import java.lang.Math;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-        import static java.lang.ClassLoader.getSystemClassLoader;
-        import static java.util.stream.Collectors.toSet;
-        import static javavulkantutorial.AlignmentUtils.alignas;
-        import static javavulkantutorial.AlignmentUtils.alignof;
-        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
-        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
-        import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
-        import static org.lwjgl.glfw.GLFW.*;
-        import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
-        import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
-        import static org.lwjgl.stb.STBImage.*;
-        import static org.lwjgl.system.Configuration.DEBUG;
-        import static org.lwjgl.system.MemoryStack.stackGet;
-        import static org.lwjgl.system.MemoryStack.stackPush;
-        import static org.lwjgl.system.MemoryUtil.NULL;
-        import static org.lwjgl.vulkan.EXTDebugUtils.*;
-        import static org.lwjgl.vulkan.KHRSurface.*;
-        import static org.lwjgl.vulkan.KHRSwapchain.*;
-        import static org.lwjgl.vulkan.VK10.*;
+import static java.lang.ClassLoader.getSystemClassLoader;
+import static java.util.stream.Collectors.toSet;
+import static javavulkantutorial.AlignmentUtils.alignas;
+import static javavulkantutorial.AlignmentUtils.alignof;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
+import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
+import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
+import static org.lwjgl.stb.STBImage.*;
+import static org.lwjgl.system.Configuration.DEBUG;
+import static org.lwjgl.system.MemoryStack.stackGet;
+import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.vulkan.EXTDebugUtils.*;
+import static org.lwjgl.vulkan.KHRSurface.*;
+import static org.lwjgl.vulkan.KHRSwapchain.*;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class Ch25TextureMapping {
 
@@ -529,22 +528,17 @@ public class Ch25TextureMapping {
 
                 vkEnumeratePhysicalDevices(instance, deviceCount, ppPhysicalDevices);
 
-                VkPhysicalDevice device = null;
-
                 for(int i = 0;i < ppPhysicalDevices.capacity();i++) {
 
-                    device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
+                    VkPhysicalDevice device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
 
                     if(isDeviceSuitable(device)) {
-                        break;
+                        physicalDevice = device;
+                        return;
                     }
                 }
 
-                if(device == null) {
-                    throw new RuntimeException("Failed to find a suitable GPU");
-                }
-
-                physicalDevice = device;
+                throw new RuntimeException("Failed to find a suitable GPU");
             }
         }
 

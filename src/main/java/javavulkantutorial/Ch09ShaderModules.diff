@@ -1,7 +1,7 @@
-diff --git a/Ch08GraphicsPipeline.java b/Ch09ShaderModules.java
-index a960f21..721fa95 100644
---- a/Ch08GraphicsPipeline.java
-+++ b/Ch09ShaderModules.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch08GraphicsPipeline.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch09ShaderModules.java"
+index fcaa19e..b220bd8 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch08GraphicsPipeline.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch09ShaderModules.java"
 @@ -1,9 +1,11 @@
  package javavulkantutorial;
  
@@ -33,7 +33,7 @@ index a960f21..721fa95 100644
  
      private static class HelloTriangleApplication {
  
-@@ -476,6 +481,59 @@ public class Ch08GraphicsPipeline {
+@@ -471,6 +476,59 @@ public class Ch08GraphicsPipeline {
  
          private void createGraphicsPipeline() {
  

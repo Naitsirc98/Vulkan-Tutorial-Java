@@ -1,90 +1,30 @@
-diff --git a/Ch24Sampler.java b/Ch25TextureMapping.java
-index 970afb4..0e3edfd 100644
---- a/Ch24Sampler.java
-+++ b/Ch25TextureMapping.java
-@@ -1,41 +1,45 @@
- package javavulkantutorial;
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch25TextureMapping.java"
+index 180b920..51e3cad 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch25TextureMapping.java"
+@@ -8,9 +8,12 @@ import org.lwjgl.system.Pointer;
+ import org.lwjgl.vulkan.*;
  
--import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
--import org.joml.*;
--import org.lwjgl.PointerBuffer;
--import org.lwjgl.system.MemoryStack;
--import org.lwjgl.system.Pointer;
--import org.lwjgl.vulkan.*;
--
--import java.lang.Math;
--import java.nio.ByteBuffer;
--import java.nio.IntBuffer;
--import java.nio.LongBuffer;
--import java.util.*;
--import java.util.stream.IntStream;
--import java.util.stream.Stream;
--
--import static java.lang.ClassLoader.getSystemClassLoader;
--import static java.util.stream.Collectors.toSet;
--import static javavulkantutorial.AlignmentUtils.alignas;
--import static javavulkantutorial.AlignmentUtils.alignof;
--import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
--import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
--import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
--import static org.lwjgl.glfw.GLFW.*;
--import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
--import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
--import static org.lwjgl.stb.STBImage.*;
--import static org.lwjgl.system.Configuration.DEBUG;
--import static org.lwjgl.system.MemoryStack.stackGet;
--import static org.lwjgl.system.MemoryStack.stackPush;
--import static org.lwjgl.system.MemoryUtil.NULL;
--import static org.lwjgl.vulkan.EXTDebugUtils.*;
--import static org.lwjgl.vulkan.KHRSurface.*;
--import static org.lwjgl.vulkan.KHRSwapchain.*;
--import static org.lwjgl.vulkan.VK10.*;
--
+ import java.lang.Math;
++import java.net.URI;
++import java.net.URISyntaxException;
+ import java.nio.ByteBuffer;
+ import java.nio.IntBuffer;
+ import java.nio.LongBuffer;
++import java.nio.file.Paths;
+ import java.util.*;
+ import java.util.stream.IntStream;
+ import java.util.stream.Stream;
+@@ -35,7 +38,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+ import static org.lwjgl.vulkan.KHRSwapchain.*;
+ import static org.lwjgl.vulkan.VK10.*;
+ 
 -public class Ch24Sampler {
-+        import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
-+        import org.joml.*;
-+        import org.lwjgl.PointerBuffer;
-+        import org.lwjgl.system.Configuration;
-+        import org.lwjgl.system.MemoryStack;
-+        import org.lwjgl.system.Pointer;
-+        import org.lwjgl.vulkan.*;
-+
-+        import java.lang.Math;
-+        import java.net.URI;
-+        import java.net.URISyntaxException;
-+        import java.nio.ByteBuffer;
-+        import java.nio.IntBuffer;
-+        import java.nio.LongBuffer;
-+        import java.nio.file.Paths;
-+        import java.util.*;
-+        import java.util.stream.IntStream;
-+        import java.util.stream.Stream;
-+
-+        import static java.lang.ClassLoader.getSystemClassLoader;
-+        import static java.util.stream.Collectors.toSet;
-+        import static javavulkantutorial.AlignmentUtils.alignas;
-+        import static javavulkantutorial.AlignmentUtils.alignof;
-+        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.FRAGMENT_SHADER;
-+        import static javavulkantutorial.ShaderSPIRVUtils.ShaderKind.VERTEX_SHADER;
-+        import static javavulkantutorial.ShaderSPIRVUtils.compileShaderFile;
-+        import static org.lwjgl.glfw.GLFW.*;
-+        import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
-+        import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
-+        import static org.lwjgl.stb.STBImage.*;
-+        import static org.lwjgl.system.Configuration.DEBUG;
-+        import static org.lwjgl.system.MemoryStack.stackGet;
-+        import static org.lwjgl.system.MemoryStack.stackPush;
-+        import static org.lwjgl.system.MemoryUtil.NULL;
-+        import static org.lwjgl.vulkan.EXTDebugUtils.*;
-+        import static org.lwjgl.vulkan.KHRSurface.*;
-+        import static org.lwjgl.vulkan.KHRSwapchain.*;
-+        import static org.lwjgl.vulkan.VK10.*;
-+
 +public class Ch25TextureMapping {
  
      private static class HelloTriangleApplication {
  
-@@ -136,16 +140,19 @@ public class Ch24Sampler {
+@@ -136,16 +139,19 @@ public class Ch24Sampler {
  
          private static class Vertex {
  
@@ -106,7 +46,7 @@ index 970afb4..0e3edfd 100644
              }
  
              private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
-@@ -163,7 +170,7 @@ public class Ch24Sampler {
+@@ -163,7 +169,7 @@ public class Ch24Sampler {
              private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
  
                  VkVertexInputAttributeDescription.Buffer attributeDescriptions =
@@ -115,7 +55,7 @@ index 970afb4..0e3edfd 100644
  
                  // Position
                  VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
-@@ -179,16 +186,23 @@ public class Ch24Sampler {
+@@ -179,16 +185,23 @@ public class Ch24Sampler {
                  colorDescription.format(VK_FORMAT_R32G32B32_SFLOAT);
                  colorDescription.offset(OFFSETOF_COLOR);
  
@@ -143,7 +83,7 @@ index 970afb4..0e3edfd 100644
          };
  
          private static final /*uint16_t*/ short[] INDICES = {
-@@ -661,7 +675,7 @@ public class Ch24Sampler {
+@@ -656,7 +669,7 @@ public class Ch24Sampler {
              swapChainImageViews = new ArrayList<>(swapChainImages.size());
  
              for(long swapChainImage : swapChainImages) {
@@ -152,7 +92,7 @@ index 970afb4..0e3edfd 100644
              }
          }
  
-@@ -716,16 +730,25 @@ public class Ch24Sampler {
+@@ -711,16 +724,25 @@ public class Ch24Sampler {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -180,7 +120,7 @@ index 970afb4..0e3edfd 100644
  
                  LongBuffer pDescriptorSetLayout = stack.mallocLong(1);
  
-@@ -742,8 +765,8 @@ public class Ch24Sampler {
+@@ -737,8 +759,8 @@ public class Ch24Sampler {
  
                  // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
                  // Check ShaderSPIRVUtils class to see how it can be done
@@ -191,7 +131,7 @@ index 970afb4..0e3edfd 100644
  
                  long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                  long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
-@@ -934,7 +957,7 @@ public class Ch24Sampler {
+@@ -929,7 +951,7 @@ public class Ch24Sampler {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -200,7 +140,7 @@ index 970afb4..0e3edfd 100644
  
                  IntBuffer pWidth = stack.mallocInt(1);
                  IntBuffer pHeight = stack.mallocInt(1);
-@@ -942,7 +965,7 @@ public class Ch24Sampler {
+@@ -937,7 +959,7 @@ public class Ch24Sampler {
  
                  ByteBuffer pixels = stbi_load(filename, pWidth, pHeight, pChannels, STBI_rgb_alpha);
  
@@ -209,7 +149,7 @@ index 970afb4..0e3edfd 100644
  
                  if(pixels == null) {
                      throw new RuntimeException("Failed to load texture image " + filename);
-@@ -960,7 +983,7 @@ public class Ch24Sampler {
+@@ -955,7 +977,7 @@ public class Ch24Sampler {
                  PointerBuffer data = stack.mallocPointer(1);
                  vkMapMemory(device, pStagingBufferMemory.get(0), 0, imageSize, 0, data);
                  {
@@ -218,7 +158,7 @@ index 970afb4..0e3edfd 100644
                  }
                  vkUnmapMemory(device, pStagingBufferMemory.get(0));
  
-@@ -992,6 +1015,9 @@ public class Ch24Sampler {
+@@ -987,6 +1009,9 @@ public class Ch24Sampler {
  
                  vkDestroyBuffer(device, pStagingBuffer.get(0), null);
                  vkFreeMemory(device, pStagingBufferMemory.get(0), null);
@@ -228,7 +168,7 @@ index 970afb4..0e3edfd 100644
              }
          }
  
-@@ -1286,13 +1312,19 @@ public class Ch24Sampler {
+@@ -1281,13 +1306,19 @@ public class Ch24Sampler {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -252,7 +192,7 @@ index 970afb4..0e3edfd 100644
                  poolInfo.maxSets(swapChainImages.size());
  
                  LongBuffer pDescriptorPool = stack.mallocLong(1);
-@@ -1331,13 +1363,28 @@ public class Ch24Sampler {
+@@ -1326,13 +1357,28 @@ public class Ch24Sampler {
                  bufferInfo.offset(0);
                  bufferInfo.range(UniformBufferObject.SIZEOF);
  
@@ -288,7 +228,7 @@ index 970afb4..0e3edfd 100644
  
                  for(int i = 0;i < pDescriptorSets.capacity();i++) {
  
-@@ -1345,9 +1392,10 @@ public class Ch24Sampler {
+@@ -1340,9 +1386,10 @@ public class Ch24Sampler {
  
                      bufferInfo.buffer(uniformBuffers.get(i));
  
@@ -301,7 +241,7 @@ index 970afb4..0e3edfd 100644
  
                      descriptorSets.add(descriptorSet);
                  }
-@@ -1448,6 +1496,9 @@ public class Ch24Sampler {
+@@ -1443,6 +1490,9 @@ public class Ch24Sampler {
                  buffer.putFloat(vertex.color.x());
                  buffer.putFloat(vertex.color.y());
                  buffer.putFloat(vertex.color.z());
@@ -311,7 +251,7 @@ index 970afb4..0e3edfd 100644
              }
          }
  
-@@ -1583,8 +1634,8 @@ public class Ch24Sampler {
+@@ -1578,8 +1628,8 @@ public class Ch24Sampler {
                  for(int i = 0;i < MAX_FRAMES_IN_FLIGHT;i++) {
  
                      if(vkCreateSemaphore(device, semaphoreInfo, null, pImageAvailableSemaphore) != VK_SUCCESS
@@ -322,7 +262,7 @@ index 970afb4..0e3edfd 100644
  
                          throw new RuntimeException("Failed to create synchronization objects for the frame " + i);
                      }
-@@ -1708,7 +1759,7 @@ public class Ch24Sampler {
+@@ -1703,7 +1753,7 @@ public class Ch24Sampler {
  
          private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
              return availableFormats.stream()

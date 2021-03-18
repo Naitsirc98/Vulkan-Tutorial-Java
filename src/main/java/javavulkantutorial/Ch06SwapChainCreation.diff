@@ -1,7 +1,7 @@
-diff --git a/Ch05WindowSurface.java b/Ch06SwapChainCreation.java
-index af884c0..1e954dc 100644
---- a/Ch05WindowSurface.java
-+++ b/Ch06SwapChainCreation.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch05WindowSurface.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch06SwapChainCreation.java"
+index 7ce3570..452b431 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch05WindowSurface.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch06SwapChainCreation.java"
 @@ -6,9 +6,9 @@ import org.lwjgl.vulkan.*;
  
  import java.nio.IntBuffer;
@@ -112,7 +112,7 @@ index af884c0..1e954dc 100644
  
                      VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
                      populateDebugMessengerCreateInfo(debugCreateInfo);
-@@ -307,8 +337,10 @@ public class Ch05WindowSurface {
+@@ -302,8 +332,10 @@ public class Ch05WindowSurface {
  
                  createInfo.pEnabledFeatures(deviceFeatures);
  
@@ -124,7 +124,7 @@ index af884c0..1e954dc 100644
                  }
  
                  PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
-@@ -329,11 +361,171 @@ public class Ch05WindowSurface {
+@@ -324,11 +356,176 @@ public class Ch05WindowSurface {
              }
          }
  
@@ -302,7 +302,7 @@ index af884c0..1e954dc 100644
          }
  
          private QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
-@@ -369,13 +561,13 @@ public class Ch05WindowSurface {
+@@ -364,13 +561,13 @@ public class Ch05WindowSurface {
              }
          }
  

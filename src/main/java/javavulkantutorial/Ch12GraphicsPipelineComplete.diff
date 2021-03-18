@@ -1,7 +1,7 @@
-diff --git a/Ch11RenderPasses.java b/Ch12GraphicsPipelineComplete.java
-index 2fac84b..8ff7d9c 100644
---- a/Ch11RenderPasses.java
-+++ b/Ch12GraphicsPipelineComplete.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java"
+index 139f975..5acde35 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -28,7 +28,7 @@ index 2fac84b..8ff7d9c 100644
              vkDestroyPipelineLayout(device, pipelineLayout, null);
  
              vkDestroyRenderPass(device, renderPass, null);
-@@ -631,6 +634,28 @@ public class Ch11RenderPasses {
+@@ -626,6 +629,28 @@ public class Ch11RenderPasses {
  
                  pipelineLayout = pPipelineLayout.get(0);
  

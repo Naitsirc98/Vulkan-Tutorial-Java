@@ -1,7 +1,7 @@
-diff --git a/Ch14CommandBuffers.java b/Ch15HelloTriangle.java
-index b444d5c..923b742 100644
---- a/Ch14CommandBuffers.java
-+++ b/Ch15HelloTriangle.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch14CommandBuffers.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch15HelloTriangle.java"
+index 38c9f0b..ee2617a 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch14CommandBuffers.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch15HelloTriangle.java"
 @@ -22,21 +22,24 @@ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
  import static org.lwjgl.system.Configuration.DEBUG;
  import static org.lwjgl.system.MemoryStack.stackGet;
@@ -71,7 +71,7 @@ index b444d5c..923b742 100644
              vkDestroyCommandPool(device, commandPool, null);
  
              swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
-@@ -524,10 +543,19 @@ public class Ch14CommandBuffers {
+@@ -519,10 +538,19 @@ public class Ch14CommandBuffers {
                  subpass.colorAttachmentCount(1);
                  subpass.pColorAttachments(colorAttachmentRef);
  
@@ -91,7 +91,7 @@ index b444d5c..923b742 100644
  
                  LongBuffer pRenderPass = stack.mallocLong(1);
  
-@@ -747,7 +775,7 @@ public class Ch14CommandBuffers {
+@@ -742,7 +770,7 @@ public class Ch14CommandBuffers {
                  PointerBuffer pCommandBuffers = stack.mallocPointer(commandBuffersCount);
  
                  if(vkAllocateCommandBuffers(device, allocInfo, pCommandBuffers) != VK_SUCCESS) {
@@ -100,7 +100,7 @@ index b444d5c..923b742 100644
                  }
  
                  for(int i = 0;i < commandBuffersCount;i++) {
-@@ -759,11 +787,14 @@ public class Ch14CommandBuffers {
+@@ -754,11 +782,14 @@ public class Ch14CommandBuffers {
  
                  VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.callocStack(stack);
                  renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
@@ -115,7 +115,7 @@ index b444d5c..923b742 100644
                  VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
                  clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
                  renderPassInfo.pClearValues(clearValues);
-@@ -797,6 +828,91 @@ public class Ch14CommandBuffers {
+@@ -792,6 +823,91 @@ public class Ch14CommandBuffers {
              }
          }
  

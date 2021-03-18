@@ -1,7 +1,7 @@
-diff --git a/Ch18VertexBuffer.java b/Ch19StagingBuffer.java
-index dc70d83..abb3322 100644
---- a/Ch18VertexBuffer.java
-+++ b/Ch19StagingBuffer.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch18VertexBuffer.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBuffer.java"
+index 60ee5a9..53490a8 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch18VertexBuffer.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBuffer.java"
 @@ -25,15 +25,14 @@ import static org.lwjgl.glfw.GLFW.*;
  import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
  import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
@@ -28,7 +28,7 @@ index dc70d83..abb3322 100644
          // ======= FIELDS ======= //
  
          private long window;
-@@ -879,46 +877,112 @@ public class Ch18VertexBuffer {
+@@ -874,46 +872,112 @@ public class Ch18VertexBuffer {
  
          private void createVertexBuffer() {
  

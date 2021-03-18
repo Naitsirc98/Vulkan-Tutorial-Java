@@ -1,7 +1,7 @@
-diff --git a/Ch09ShaderModules.java b/Ch10FixedFunctions.java
-index 721fa95..ccf1a1f 100644
---- a/Ch09ShaderModules.java
-+++ b/Ch10FixedFunctions.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch09ShaderModules.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch10FixedFunctions.java"
+index b220bd8..1254e60 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch09ShaderModules.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch10FixedFunctions.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -29,7 +29,7 @@ index 721fa95..ccf1a1f 100644
              swapChainImageViews.forEach(imageView -> vkDestroyImageView(device, imageView, null));
  
              vkDestroySwapchainKHR(device, swapChain, null);
-@@ -509,6 +513,85 @@ public class Ch09ShaderModules {
+@@ -504,6 +508,85 @@ public class Ch09ShaderModules {
                  fragShaderStageInfo.module(fragShaderModule);
                  fragShaderStageInfo.pName(entryPoint);
  

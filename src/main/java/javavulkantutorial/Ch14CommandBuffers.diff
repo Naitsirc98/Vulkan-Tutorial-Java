@@ -1,7 +1,7 @@
-diff --git a/Ch13Framebuffers.java b/Ch14CommandBuffers.java
-index 38cf106..b444d5c 100644
---- a/Ch13Framebuffers.java
-+++ b/Ch14CommandBuffers.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch14CommandBuffers.java"
+index d26b3ba..38c9f0b 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch14CommandBuffers.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -39,7 +39,16 @@ index 38cf106..b444d5c 100644
              swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
  
              vkDestroyPipeline(device, graphicsPipeline, null);
-@@ -703,6 +710,93 @@ public class Ch13Framebuffers {
+@@ -479,7 +486,7 @@ public class Ch13Framebuffers {
+                     createInfo.subresourceRange().baseArrayLayer(0);
+                     createInfo.subresourceRange().layerCount(1);
+ 
+-                    if(vkCreateImageView(device, createInfo, null, pImageView) != VK_SUCCESS) {
++                    if (vkCreateImageView(device, createInfo, null, pImageView) != VK_SUCCESS) {
+                         throw new RuntimeException("Failed to create image views");
+                     }
+ 
+@@ -698,6 +705,93 @@ public class Ch13Framebuffers {
              }
          }
  

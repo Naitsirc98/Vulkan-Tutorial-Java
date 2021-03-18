@@ -1,7 +1,7 @@
-diff --git a/Ch07ImageViews.java b/Ch08GraphicsPipeline.java
-index 8113641..a960f21 100644
---- a/Ch07ImageViews.java
-+++ b/Ch08GraphicsPipeline.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch07ImageViews.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch08GraphicsPipeline.java"
+index c0a6fcf..fcaa19e 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch07ImageViews.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch08GraphicsPipeline.java"
 @@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -19,7 +19,7 @@ index 8113641..a960f21 100644
          }
  
          private void mainLoop() {
-@@ -463,7 +464,7 @@ public class Ch07ImageViews {
+@@ -458,7 +459,7 @@ public class Ch07ImageViews {
                      createInfo.subresourceRange().baseArrayLayer(0);
                      createInfo.subresourceRange().layerCount(1);
  
@@ -28,7 +28,7 @@ index 8113641..a960f21 100644
                          throw new RuntimeException("Failed to create image views");
                      }
  
-@@ -473,6 +474,10 @@ public class Ch07ImageViews {
+@@ -468,6 +469,10 @@ public class Ch07ImageViews {
              }
          }
  

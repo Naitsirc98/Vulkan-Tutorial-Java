@@ -1,8 +1,16 @@
-diff --git a/Ch02ValidationLayers.java b/Ch03PhysicalDeviceSelection.java
-index 3d085be..724db16 100644
---- a/Ch02ValidationLayers.java
-+++ b/Ch03PhysicalDeviceSelection.java
-@@ -19,7 +19,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch02ValidationLayers.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch03PhysicalDeviceSelection.java"
+index 3d085be..faf1ba6 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch02ValidationLayers.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch03PhysicalDeviceSelection.java"
+@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
+ import java.nio.LongBuffer;
+ import java.util.HashSet;
+ import java.util.Set;
++import java.util.stream.IntStream;
+ 
+ import static java.util.stream.Collectors.toSet;
+ import static org.lwjgl.glfw.GLFW.*;
+@@ -19,7 +20,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
  import static org.lwjgl.vulkan.EXTDebugUtils.*;
  import static org.lwjgl.vulkan.VK10.*;
  
@@ -11,7 +19,7 @@ index 3d085be..724db16 100644
  
      private static class HelloTriangleApplication {
  
-@@ -66,11 +66,23 @@ public class Ch02ValidationLayers {
+@@ -66,11 +67,23 @@ public class Ch02ValidationLayers {
  
          }
  
@@ -35,7 +43,7 @@ index 3d085be..724db16 100644
  
          // ======= METHODS ======= //
  
-@@ -102,6 +114,7 @@ public class Ch02ValidationLayers {
+@@ -102,6 +115,7 @@ public class Ch02ValidationLayers {
          private void initVulkan() {
              createInstance();
              setupDebugMessenger();
@@ -43,7 +51,7 @@ index 3d085be..724db16 100644
          }
  
          private void mainLoop() {
-@@ -200,6 +213,71 @@ public class Ch02ValidationLayers {
+@@ -200,6 +214,66 @@ public class Ch02ValidationLayers {
              }
          }
  
@@ -63,22 +71,17 @@ index 3d085be..724db16 100644
 +
 +                vkEnumeratePhysicalDevices(instance, deviceCount, ppPhysicalDevices);
 +
-+                VkPhysicalDevice device = null;
-+
 +                for(int i = 0;i < ppPhysicalDevices.capacity();i++) {
 +
-+                    device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
++                    VkPhysicalDevice device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
 +
 +                    if(isDeviceSuitable(device)) {
-+                        break;
++                        physicalDevice = device;
++                        return;
 +                    }
 +                }
 +
-+                if(device == null) {
-+                    throw new RuntimeException("Failed to find a suitable GPU");
-+                }
-+
-+                physicalDevice = device;
++                throw new RuntimeException("Failed to find a suitable GPU");
 +            }
 +        }
 +

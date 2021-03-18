@@ -1,7 +1,7 @@
-diff --git a/Ch23TextureImage.java b/Ch24Sampler.java
-index fd768ff..970afb4 100644
---- a/Ch23TextureImage.java
-+++ b/Ch24Sampler.java
+diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch23TextureImage.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java"
+index 597ff20..180b920 100644
+--- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch23TextureImage.java"
++++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java"
 @@ -35,7 +35,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
@@ -38,7 +38,7 @@ index fd768ff..970afb4 100644
              vkDestroyImage(device, textureImage, null);
              vkFreeMemory(device, textureImageMemory, null);
  
-@@ -546,6 +552,7 @@ public class Ch23TextureImage {
+@@ -541,6 +547,7 @@ public class Ch23TextureImage {
                  }
  
                  VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
@@ -46,7 +46,7 @@ index fd768ff..970afb4 100644
  
                  VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
  
-@@ -653,37 +660,8 @@ public class Ch23TextureImage {
+@@ -648,37 +655,8 @@ public class Ch23TextureImage {
  
              swapChainImageViews = new ArrayList<>(swapChainImages.size());
  
@@ -86,7 +86,7 @@ index fd768ff..970afb4 100644
              }
          }
  
-@@ -1017,6 +995,64 @@ public class Ch23TextureImage {
+@@ -1012,6 +990,64 @@ public class Ch23TextureImage {
              }
          }
  
@@ -151,7 +151,7 @@ index fd768ff..970afb4 100644
          private void createImage(int width, int height, int format, int tiling, int usage, int memProperties,
                                   LongBuffer pTextureImage, LongBuffer pTextureImageMemory) {
  
-@@ -1721,15 +1757,19 @@ public class Ch23TextureImage {
+@@ -1716,15 +1752,19 @@ public class Ch23TextureImage {
  
              boolean extensionsSupported = checkDeviceExtensionSupport(device);
              boolean swapChainAdequate = false;
