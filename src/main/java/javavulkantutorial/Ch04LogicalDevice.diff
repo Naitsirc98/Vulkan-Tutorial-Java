@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch03PhysicalDeviceSelection.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch04LogicalDevice.java"
-index faf1ba6..423530f 100644
+index a6e48df..10d7127 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch03PhysicalDeviceSelection.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch04LogicalDevice.java"
 @@ -20,7 +20,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
@@ -47,15 +47,15 @@ index faf1ba6..423530f 100644
 +
 +                QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 +
-+                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(1, stack);
++                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(1, stack);
 +
 +                queueCreateInfos.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
 +                queueCreateInfos.queueFamilyIndex(indices.graphicsFamily);
 +                queueCreateInfos.pQueuePriorities(stack.floats(1.0f));
 +
-+                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
++                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
 +
-+                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
++                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc(stack);
 +
 +                createInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
 +                createInfo.pQueueCreateInfos(queueCreateInfos);
@@ -64,7 +64,7 @@ index faf1ba6..423530f 100644
 +                createInfo.pEnabledFeatures(deviceFeatures);
 +
 +                if(ENABLE_VALIDATION_LAYERS) {
-+                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer());
++                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer(stack));
 +                }
 +
 +                PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);

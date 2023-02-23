@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch27ModelLoading.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch28Mipmapping.java"
-index f9c0cfe..0517dcc 100644
+index ca38319..ba55d68 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch27ModelLoading.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch28Mipmapping.java"
 @@ -1,17 +1,17 @@
@@ -39,16 +39,31 @@ index f9c0cfe..0517dcc 100644
  import static org.lwjgl.glfw.GLFW.*;
  import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
  import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
-@@ -44,7 +45,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+@@ -43,8 +44,9 @@ import static org.lwjgl.vulkan.EXTDebugUtils.*;
+ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
++import static org.lwjgl.vulkan.VK11.VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
  
 -public class Ch27ModelLoading {
 +public class Ch28Mipmapping {
  
      private static class HelloTriangleApplication {
  
-@@ -237,6 +238,7 @@ public class Ch27ModelLoading {
+@@ -150,9 +152,9 @@ public class Ch27ModelLoading {
+             private static final int OFFSETOF_COLOR = 3 * Float.BYTES;
+             private static final int OFFSETOF_TEXTCOORDS = (3 + 3) * Float.BYTES;
+ 
+-            private Vector3fc pos;
+-            private Vector3fc color;
+-            private Vector2fc texCoords;
++            private final Vector3fc pos;
++            private final Vector3fc color;
++            private final Vector2fc texCoords;
+ 
+             public Vertex(Vector3fc pos, Vector3fc color, Vector2fc texCoords) {
+                 this.pos = pos;
+@@ -237,6 +239,7 @@ public class Ch27ModelLoading {
          private long depthImageMemory;
          private long depthImageView;
  
@@ -56,7 +71,7 @@ index f9c0cfe..0517dcc 100644
          private long textureImage;
          private long textureImageMemory;
          private long textureImageView;
-@@ -676,7 +678,7 @@ public class Ch27ModelLoading {
+@@ -676,7 +679,7 @@ public class Ch27ModelLoading {
              swapChainImageViews = new ArrayList<>(swapChainImages.size());
  
              for(long swapChainImage : swapChainImages) {
@@ -65,7 +80,7 @@ index f9c0cfe..0517dcc 100644
              }
          }
  
-@@ -699,8 +701,6 @@ public class Ch27ModelLoading {
+@@ -699,8 +702,6 @@ public class Ch27ModelLoading {
                  colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
                  colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
  
@@ -74,7 +89,7 @@ index f9c0cfe..0517dcc 100644
                  VkAttachmentReference colorAttachmentRef = attachmentRefs.get(0);
                  colorAttachmentRef.attachment(0);
                  colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-@@ -1000,6 +1000,7 @@ public class Ch27ModelLoading {
+@@ -1000,6 +1001,7 @@ public class Ch27ModelLoading {
  
                  createImage(
                          swapChainExtent.width(), swapChainExtent.height(),
@@ -82,7 +97,7 @@ index f9c0cfe..0517dcc 100644
                          depthFormat,
                          VK_IMAGE_TILING_OPTIMAL,
                          VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-@@ -1010,11 +1011,12 @@ public class Ch27ModelLoading {
+@@ -1010,11 +1012,12 @@ public class Ch27ModelLoading {
                  depthImage = pDepthImage.get(0);
                  depthImageMemory = pDepthImageMemory.get(0);
  
@@ -97,7 +112,7 @@ index f9c0cfe..0517dcc 100644
  
              }
          }
-@@ -1055,6 +1057,10 @@ public class Ch27ModelLoading {
+@@ -1055,6 +1058,10 @@ public class Ch27ModelLoading {
              return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
          }
  
@@ -108,7 +123,7 @@ index f9c0cfe..0517dcc 100644
          private void createTextureImage() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1069,6 +1075,8 @@ public class Ch27ModelLoading {
+@@ -1069,6 +1076,8 @@ public class Ch27ModelLoading {
  
                  long imageSize = pWidth.get(0) * pHeight.get(0) * 4; // pChannels.get(0);
  
@@ -117,7 +132,7 @@ index f9c0cfe..0517dcc 100644
                  if(pixels == null) {
                      throw new RuntimeException("Failed to load texture image " + filename);
                  }
-@@ -1094,8 +1102,9 @@ public class Ch27ModelLoading {
+@@ -1094,8 +1103,9 @@ public class Ch27ModelLoading {
                  LongBuffer pTextureImage = stack.mallocLong(1);
                  LongBuffer pTextureImageMemory = stack.mallocLong(1);
                  createImage(pWidth.get(0), pHeight.get(0),
@@ -128,7 +143,7 @@ index f9c0cfe..0517dcc 100644
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                          pTextureImage,
                          pTextureImageMemory);
-@@ -1106,14 +1115,13 @@ public class Ch27ModelLoading {
+@@ -1106,14 +1116,13 @@ public class Ch27ModelLoading {
                  transitionImageLayout(textureImage,
                          VK_FORMAT_R8G8B8A8_SRGB,
                          VK_IMAGE_LAYOUT_UNDEFINED,
@@ -147,7 +162,7 @@ index f9c0cfe..0517dcc 100644
  
                  vkDestroyBuffer(device, pStagingBuffer.get(0), null);
                  vkFreeMemory(device, pStagingBufferMemory.get(0), null);
-@@ -1123,8 +1131,106 @@ public class Ch27ModelLoading {
+@@ -1123,8 +1132,106 @@ public class Ch27ModelLoading {
              }
          }
  
@@ -156,7 +171,7 @@ index f9c0cfe..0517dcc 100644
 +            try(MemoryStack stack = stackPush()) {
 +
 +                // Check if image format supports linear blitting
-+                VkFormatProperties formatProperties = VkFormatProperties.mallocStack(stack);
++                VkFormatProperties formatProperties = VkFormatProperties.malloc(stack);
 +                vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, formatProperties);
 +
 +                if((formatProperties.optimalTilingFeatures() & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) == 0) {
@@ -165,7 +180,7 @@ index f9c0cfe..0517dcc 100644
 +
 +                VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 +
-+                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.callocStack(1, stack);
++                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.calloc(1, stack);
 +                barrier.sType(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
 +                barrier.image(image);
 +                barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
@@ -193,7 +208,7 @@ index f9c0cfe..0517dcc 100644
 +                            null,
 +                            barrier);
 +
-+                    VkImageBlit.Buffer blit = VkImageBlit.callocStack(1, stack);
++                    VkImageBlit.Buffer blit = VkImageBlit.calloc(1, stack);
 +                    blit.srcOffsets(0).set(0, 0, 0);
 +                    blit.srcOffsets(1).set(mipWidth, mipHeight, 1);
 +                    blit.srcSubresource().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
@@ -255,7 +270,7 @@ index f9c0cfe..0517dcc 100644
          }
  
          private void createTextureSampler() {
-@@ -1145,6 +1251,9 @@ public class Ch27ModelLoading {
+@@ -1145,6 +1252,9 @@ public class Ch27ModelLoading {
                  samplerInfo.compareEnable(false);
                  samplerInfo.compareOp(VK_COMPARE_OP_ALWAYS);
                  samplerInfo.mipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR);
@@ -265,7 +280,7 @@ index f9c0cfe..0517dcc 100644
  
                  LongBuffer pTextureSampler = stack.mallocLong(1);
  
-@@ -1156,7 +1265,7 @@ public class Ch27ModelLoading {
+@@ -1156,7 +1266,7 @@ public class Ch27ModelLoading {
              }
          }
  
@@ -274,7 +289,7 @@ index f9c0cfe..0517dcc 100644
  
              try(MemoryStack stack = stackPush()) {
  
-@@ -1167,7 +1276,7 @@ public class Ch27ModelLoading {
+@@ -1167,7 +1277,7 @@ public class Ch27ModelLoading {
                  viewInfo.format(format);
                  viewInfo.subresourceRange().aspectMask(aspectFlags);
                  viewInfo.subresourceRange().baseMipLevel(0);
@@ -283,7 +298,7 @@ index f9c0cfe..0517dcc 100644
                  viewInfo.subresourceRange().baseArrayLayer(0);
                  viewInfo.subresourceRange().layerCount(1);
  
-@@ -1181,7 +1290,7 @@ public class Ch27ModelLoading {
+@@ -1181,7 +1291,7 @@ public class Ch27ModelLoading {
              }
          }
  
@@ -292,7 +307,7 @@ index f9c0cfe..0517dcc 100644
                                   LongBuffer pTextureImage, LongBuffer pTextureImageMemory) {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1192,7 +1301,7 @@ public class Ch27ModelLoading {
+@@ -1192,7 +1302,7 @@ public class Ch27ModelLoading {
                  imageInfo.extent().width(width);
                  imageInfo.extent().height(height);
                  imageInfo.extent().depth(1);
@@ -301,7 +316,7 @@ index f9c0cfe..0517dcc 100644
                  imageInfo.arrayLayers(1);
                  imageInfo.format(format);
                  imageInfo.tiling(tiling);
-@@ -1221,7 +1330,7 @@ public class Ch27ModelLoading {
+@@ -1221,7 +1331,7 @@ public class Ch27ModelLoading {
              }
          }
  
@@ -310,7 +325,7 @@ index f9c0cfe..0517dcc 100644
  
              try(MemoryStack stack = stackPush()) {
  
-@@ -1234,7 +1343,7 @@ public class Ch27ModelLoading {
+@@ -1234,7 +1344,7 @@ public class Ch27ModelLoading {
                  barrier.image(image);
  
                  barrier.subresourceRange().baseMipLevel(0);
@@ -318,4 +333,47 @@ index f9c0cfe..0517dcc 100644
 +                barrier.subresourceRange().levelCount(mipLevels);
                  barrier.subresourceRange().baseArrayLayer(0);
                  barrier.subresourceRange().layerCount(1);
+ 
+@@ -1310,7 +1420,7 @@ public class Ch27ModelLoading {
+                 region.imageSubresource().baseArrayLayer(0);
+                 region.imageSubresource().layerCount(1);
+                 region.imageOffset().set(0, 0, 0);
+-                region.imageExtent(VkExtent3D.calloc(stack).set(width, height, 1));
++                region.imageExtent(VkExtent3D.callocStack(stack).set(width, height, 1));
+ 
+                 vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, region);
+ 
+@@ -1461,7 +1571,7 @@ public class Ch27ModelLoading {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(2, stack);
++                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.callocStack(2, stack);
+ 
+                 VkDescriptorPoolSize uniformBufferPoolSize = poolSizes.get(0);
+                 uniformBufferPoolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+@@ -1471,7 +1581,7 @@ public class Ch27ModelLoading {
+                 textureSamplerPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                 textureSamplerPoolSize.descriptorCount(swapChainImages.size());
+ 
+-                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.calloc(stack);
++                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
+                 poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+                 poolInfo.pPoolSizes(poolSizes);
+                 poolInfo.maxSets(swapChainImages.size());
+@@ -2054,6 +2164,7 @@ public class Ch27ModelLoading {
+         }
+ 
+         private PointerBuffer asPointerBuffer(MemoryStack stack, Collection<String> collection) {
++            if(collection == null) return null;
+ 
+             PointerBuffer buffer = stack.mallocPointer(collection.size());
+ 
+@@ -2065,6 +2176,7 @@ public class Ch27ModelLoading {
+         }
+ 
+         private PointerBuffer asPointerBuffer(MemoryStack stack, List<? extends Pointer> list) {
++            if(list == null) return null;
+ 
+             PointerBuffer buffer = stack.mallocPointer(list.size());
  

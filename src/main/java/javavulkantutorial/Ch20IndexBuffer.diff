@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBufferTransferQueue.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java"
-index 9e8a59e..9cfec51 100644
+index 589b3bc..c6d6636 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch19StagingBufferTransferQueue.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java"
 @@ -33,20 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -65,20 +65,20 @@ index 9e8a59e..9cfec51 100644
          }
  
 @@ -148,7 +134,7 @@ public class Ch19StagingBufferTransferQueue {
-             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
+             private static VkVertexInputBindingDescription.Buffer getBindingDescription(MemoryStack stack) {
  
                  VkVertexInputBindingDescription.Buffer bindingDescription =
--                    VkVertexInputBindingDescription.callocStack(1);
-+                        VkVertexInputBindingDescription.callocStack(1);
+-                    VkVertexInputBindingDescription.calloc(1, stack);
++                        VkVertexInputBindingDescription.calloc(1, stack);
  
                  bindingDescription.binding(0);
                  bindingDescription.stride(Vertex.SIZEOF);
 @@ -160,7 +146,7 @@ public class Ch19StagingBufferTransferQueue {
-             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
+             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions(MemoryStack stack) {
  
                  VkVertexInputAttributeDescription.Buffer attributeDescriptions =
--                    VkVertexInputAttributeDescription.callocStack(2);
-+                        VkVertexInputAttributeDescription.callocStack(2);
+-                    VkVertexInputAttributeDescription.calloc(2);
++                        VkVertexInputAttributeDescription.calloc(2);
  
                  // Position
                  VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
@@ -195,7 +195,7 @@ index 9e8a59e..9cfec51 100644
 -            try(MemoryStack stack = stackPush()) {
 +                PointerBuffer data = stack.mallocPointer(1);
  
--                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
+-                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
 -                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
 -                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 -                allocInfo.commandPool(transferCommandPool);
@@ -277,7 +277,7 @@ index 9e8a59e..9cfec51 100644
  
              try(MemoryStack stack = stackPush()) {
  
-+                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
++                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
 +                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
 +                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 +                allocInfo.commandPool(commandPool);
@@ -287,7 +287,7 @@ index 9e8a59e..9cfec51 100644
 +                vkAllocateCommandBuffers(device, allocInfo, pCommandBuffer);
 +                VkCommandBuffer commandBuffer = new VkCommandBuffer(pCommandBuffer.get(0), device);
 +
-                 VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
+                 VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack);
                  beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
                  beginInfo.flags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
  
@@ -295,7 +295,7 @@ index 9e8a59e..9cfec51 100644
 -                vkBeginCommandBuffer(transferCommandBuffer, beginInfo);
 +                vkBeginCommandBuffer(commandBuffer, beginInfo);
                  {
-                     VkBufferCopy.Buffer copyRegion = VkBufferCopy.callocStack(1, stack);
+                     VkBufferCopy.Buffer copyRegion = VkBufferCopy.calloc(1, stack);
                      copyRegion.size(size);
 -                    vkCmdCopyBuffer(transferCommandBuffer, srcBuffer, dstBuffer, copyRegion);
 +                    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, copyRegion);
@@ -303,7 +303,7 @@ index 9e8a59e..9cfec51 100644
 -                vkEndCommandBuffer(transferCommandBuffer);
 +                vkEndCommandBuffer(commandBuffer);
  
-                 VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
+                 VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
                  submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
 -                submitInfo.pCommandBuffers(stack.pointers(transferCommandBuffer));
 +                submitInfo.pCommandBuffers(pCommandBuffer);
@@ -333,9 +333,9 @@ index 9e8a59e..9cfec51 100644
 +            buffer.rewind();
 +        }
 +
-         private int findMemoryType(int typeFilter, int properties) {
+         private int findMemoryType(MemoryStack stack, int typeFilter, int properties) {
  
-             VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
+             VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.malloc(stack);
 @@ -1110,7 +1129,9 @@ public class Ch19StagingBufferTransferQueue {
                          LongBuffer offsets = stack.longs(0);
                          vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
@@ -362,6 +362,15 @@ index 9e8a59e..9cfec51 100644
  
                      inFlightFrames.add(new Frame(pImageAvailableSemaphore.get(0), pRenderFinishedSemaphore.get(0), pFence.get(0)));
                  }
+@@ -1185,7 +1206,7 @@ public class Ch19StagingBufferTransferQueue {
+ 
+                 imagesInFlight.put(imageIndex, thisFrame);
+ 
+-                VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
++                VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
+                 submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
+ 
+                 submitInfo.waitSemaphoreCount(1);
 @@ -1247,10 +1268,10 @@ public class Ch19StagingBufferTransferQueue {
  
          private VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
@@ -392,7 +401,7 @@ index 9e8a59e..9cfec51 100644
  
                      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, presentSupport);
  
-@@ -1400,8 +1413,8 @@ public class Ch19StagingBufferTransferQueue {
+@@ -1398,8 +1411,8 @@ public class Ch19StagingBufferTransferQueue {
              PointerBuffer buffer = stack.mallocPointer(collection.size());
  
              collection.stream()
@@ -403,7 +412,7 @@ index 9e8a59e..9cfec51 100644
  
              return buffer.rewind();
          }
-@@ -1450,8 +1463,8 @@ public class Ch19StagingBufferTransferQueue {
+@@ -1444,8 +1457,8 @@ public class Ch19StagingBufferTransferQueue {
                  vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
  
                  Set<String> availableLayerNames = availableLayers.stream()

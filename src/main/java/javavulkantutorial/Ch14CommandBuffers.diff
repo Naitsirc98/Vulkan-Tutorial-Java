@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch14CommandBuffers.java"
-index d26b3ba..38c9f0b 100644
+index a12bf81..1caa3ce 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch14CommandBuffers.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -58,7 +58,7 @@ index d26b3ba..38c9f0b 100644
 +
 +                QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 +
-+                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.callocStack(stack);
++                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.calloc(stack);
 +                poolInfo.sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
 +                poolInfo.queueFamilyIndex(queueFamilyIndices.graphicsFamily);
 +
@@ -80,7 +80,7 @@ index d26b3ba..38c9f0b 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
++                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
 +                allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
 +                allocInfo.commandPool(commandPool);
 +                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
@@ -96,17 +96,17 @@ index d26b3ba..38c9f0b 100644
 +                    commandBuffers.add(new VkCommandBuffer(pCommandBuffers.get(i), device));
 +                }
 +
-+                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
++                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack);
 +                beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
 +
-+                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.callocStack(stack);
++                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.calloc(stack);
 +                renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
 +                renderPassInfo.renderPass(renderPass);
-+                VkRect2D renderArea = VkRect2D.callocStack(stack);
-+                renderArea.offset(VkOffset2D.callocStack(stack).set(0, 0));
++                VkRect2D renderArea = VkRect2D.calloc(stack);
++                renderArea.offset(VkOffset2D.calloc(stack).set(0, 0));
 +                renderArea.extent(swapChainExtent);
 +                renderPassInfo.renderArea(renderArea);
-+                VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
++                VkClearValue.Buffer clearValues = VkClearValue.calloc(1, stack);
 +                clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
 +                renderPassInfo.pClearValues(clearValues);
 +

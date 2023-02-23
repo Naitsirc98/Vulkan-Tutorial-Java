@@ -1,16 +1,8 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch25TextureMapping.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch26DepthBuffering.java"
-index 51e3cad..dfd94d9 100644
+index faac5b9..5e5873b 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch25TextureMapping.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch26DepthBuffering.java"
-@@ -3,6 +3,7 @@ package javavulkantutorial;
- import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
- import org.joml.*;
- import org.lwjgl.PointerBuffer;
-+import org.lwjgl.system.Configuration;
- import org.lwjgl.system.MemoryStack;
- import org.lwjgl.system.Pointer;
- import org.lwjgl.vulkan.*;
-@@ -38,7 +39,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+@@ -38,7 +38,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
  
@@ -19,7 +11,7 @@ index 51e3cad..dfd94d9 100644
  
      private static class HelloTriangleApplication {
  
-@@ -139,16 +140,16 @@ public class Ch25TextureMapping {
+@@ -139,16 +139,16 @@ public class Ch25TextureMapping {
  
          private static class Vertex {
  
@@ -41,7 +33,7 @@ index 51e3cad..dfd94d9 100644
                  this.pos = pos;
                  this.color = color;
                  this.texCoords = texCoords;
-@@ -175,7 +176,7 @@ public class Ch25TextureMapping {
+@@ -175,7 +175,7 @@ public class Ch25TextureMapping {
                  VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
                  posDescription.binding(0);
                  posDescription.location(0);
@@ -50,7 +42,7 @@ index 51e3cad..dfd94d9 100644
                  posDescription.offset(OFFSETOF_POS);
  
                  // Color
-@@ -198,14 +199,20 @@ public class Ch25TextureMapping {
+@@ -198,14 +198,20 @@ public class Ch25TextureMapping {
          }
  
          private static final Vertex[] VERTICES = {
@@ -76,7 +68,7 @@ index 51e3cad..dfd94d9 100644
          };
  
          // ======= FIELDS ======= //
-@@ -238,6 +245,10 @@ public class Ch25TextureMapping {
+@@ -238,6 +244,10 @@ public class Ch25TextureMapping {
  
          private long commandPool;
  
@@ -87,7 +79,7 @@ index 51e3cad..dfd94d9 100644
          private long textureImage;
          private long textureImageMemory;
          private long textureImageView;
-@@ -329,6 +340,10 @@ public class Ch25TextureMapping {
+@@ -329,6 +339,10 @@ public class Ch25TextureMapping {
  
          private void cleanupSwapChain() {
  
@@ -98,7 +90,7 @@ index 51e3cad..dfd94d9 100644
              uniformBuffers.forEach(ubo -> vkDestroyBuffer(device, ubo, null));
              uniformBuffersMemory.forEach(uboMemory -> vkFreeMemory(device, uboMemory, null));
  
-@@ -416,6 +431,7 @@ public class Ch25TextureMapping {
+@@ -416,6 +430,7 @@ public class Ch25TextureMapping {
              createImageViews();
              createRenderPass();
              createGraphicsPipeline();
@@ -106,7 +98,7 @@ index 51e3cad..dfd94d9 100644
              createFramebuffers();
              createUniformBuffers();
              createDescriptorPool();
-@@ -669,7 +685,7 @@ public class Ch25TextureMapping {
+@@ -669,7 +684,7 @@ public class Ch25TextureMapping {
              swapChainImageViews = new ArrayList<>(swapChainImages.size());
  
              for(long swapChainImage : swapChainImages) {
@@ -115,13 +107,13 @@ index 51e3cad..dfd94d9 100644
              }
          }
  
-@@ -677,7 +693,12 @@ public class Ch25TextureMapping {
+@@ -677,7 +692,12 @@ public class Ch25TextureMapping {
  
              try(MemoryStack stack = stackPush()) {
  
--                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
-+                VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.callocStack(2, stack);
-+                VkAttachmentReference.Buffer attachmentRefs = VkAttachmentReference.callocStack(2, stack);
+-                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.calloc(1, stack);
++                VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.calloc(2, stack);
++                VkAttachmentReference.Buffer attachmentRefs = VkAttachmentReference.calloc(2, stack);
 +
 +                // Color attachments
 +
@@ -129,11 +121,11 @@ index 51e3cad..dfd94d9 100644
                  colorAttachment.format(swapChainImageFormat);
                  colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
                  colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
-@@ -687,14 +708,33 @@ public class Ch25TextureMapping {
+@@ -687,14 +707,33 @@ public class Ch25TextureMapping {
                  colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
                  colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
  
--                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
+-                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.calloc(1, stack);
 +                int y = attachments.get(0).samples();
 +
 +                VkAttachmentReference colorAttachmentRef = attachmentRefs.get(0);
@@ -156,25 +148,25 @@ index 51e3cad..dfd94d9 100644
 +                depthAttachmentRef.attachment(1);
 +                depthAttachmentRef.layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 +
-                 VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
+                 VkSubpassDescription.Buffer subpass = VkSubpassDescription.calloc(1, stack);
                  subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
                  subpass.colorAttachmentCount(1);
 -                subpass.pColorAttachments(colorAttachmentRef);
-+                subpass.pColorAttachments(VkAttachmentReference.callocStack(1, stack).put(0, colorAttachmentRef));
++                subpass.pColorAttachments(VkAttachmentReference.calloc(1, stack).put(0, colorAttachmentRef));
 +                subpass.pDepthStencilAttachment(depthAttachmentRef);
  
-                 VkSubpassDependency.Buffer dependency = VkSubpassDependency.callocStack(1, stack);
+                 VkSubpassDependency.Buffer dependency = VkSubpassDependency.calloc(1, stack);
                  dependency.srcSubpass(VK_SUBPASS_EXTERNAL);
-@@ -706,7 +746,7 @@ public class Ch25TextureMapping {
+@@ -706,7 +745,7 @@ public class Ch25TextureMapping {
  
-                 VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
+                 VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.calloc(stack);
                  renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
 -                renderPassInfo.pAttachments(colorAttachment);
 +                renderPassInfo.pAttachments(attachments);
                  renderPassInfo.pSubpasses(subpass);
                  renderPassInfo.pDependencies(dependency);
  
-@@ -759,8 +799,8 @@ public class Ch25TextureMapping {
+@@ -759,8 +798,8 @@ public class Ch25TextureMapping {
  
                  // Let's compile the GLSL shaders into SPIR-V at runtime using the shaderc library
                  // Check ShaderSPIRVUtils class to see how it can be done
@@ -185,11 +177,11 @@ index 51e3cad..dfd94d9 100644
  
                  long vertShaderModule = createShaderModule(vertShaderSPIRV.bytecode());
                  long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
-@@ -835,6 +875,16 @@ public class Ch25TextureMapping {
+@@ -835,6 +874,16 @@ public class Ch25TextureMapping {
                  multisampling.sampleShadingEnable(false);
                  multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
  
-+                VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.callocStack(stack);
++                VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc(stack);
 +                depthStencil.sType(VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
 +                depthStencil.depthTestEnable(true);
 +                depthStencil.depthWriteEnable(true);
@@ -201,8 +193,8 @@ index 51e3cad..dfd94d9 100644
 +
                  // ===> COLOR BLENDING <===
  
-                 VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.callocStack(1, stack);
-@@ -870,6 +920,7 @@ public class Ch25TextureMapping {
+                 VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);
+@@ -870,6 +919,7 @@ public class Ch25TextureMapping {
                  pipelineInfo.pViewportState(viewportState);
                  pipelineInfo.pRasterizationState(rasterizer);
                  pipelineInfo.pMultisampleState(multisampling);
@@ -210,7 +202,7 @@ index 51e3cad..dfd94d9 100644
                  pipelineInfo.pColorBlendState(colorBlending);
                  pipelineInfo.layout(pipelineLayout);
                  pipelineInfo.renderPass(renderPass);
-@@ -901,7 +952,7 @@ public class Ch25TextureMapping {
+@@ -901,7 +951,7 @@ public class Ch25TextureMapping {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -219,7 +211,7 @@ index 51e3cad..dfd94d9 100644
                  LongBuffer pFramebuffer = stack.mallocLong(1);
  
                  // Lets allocate the create info struct once and just update the pAttachments field each iteration
-@@ -947,6 +998,72 @@ public class Ch25TextureMapping {
+@@ -947,6 +997,72 @@ public class Ch25TextureMapping {
              }
          }
  
@@ -257,7 +249,7 @@ index 51e3cad..dfd94d9 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkFormatProperties props = VkFormatProperties.callocStack(stack);
++                VkFormatProperties props = VkFormatProperties.calloc(stack);
 +
 +                for(int i = 0; i < formatCandidates.capacity(); ++i) {
 +
@@ -292,7 +284,7 @@ index 51e3cad..dfd94d9 100644
          private void createTextureImage() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1016,7 +1133,7 @@ public class Ch25TextureMapping {
+@@ -1016,7 +1132,7 @@ public class Ch25TextureMapping {
          }
  
          private void createTextureImageView() {
@@ -301,7 +293,7 @@ index 51e3cad..dfd94d9 100644
          }
  
          private void createTextureSampler() {
-@@ -1048,7 +1165,7 @@ public class Ch25TextureMapping {
+@@ -1048,7 +1164,7 @@ public class Ch25TextureMapping {
              }
          }
  
@@ -310,7 +302,7 @@ index 51e3cad..dfd94d9 100644
  
              try(MemoryStack stack = stackPush()) {
  
-@@ -1057,7 +1174,7 @@ public class Ch25TextureMapping {
+@@ -1057,7 +1173,7 @@ public class Ch25TextureMapping {
                  viewInfo.image(image);
                  viewInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
                  viewInfo.format(format);
@@ -319,7 +311,7 @@ index 51e3cad..dfd94d9 100644
                  viewInfo.subresourceRange().baseMipLevel(0);
                  viewInfo.subresourceRange().levelCount(1);
                  viewInfo.subresourceRange().baseArrayLayer(0);
-@@ -1124,12 +1241,25 @@ public class Ch25TextureMapping {
+@@ -1124,12 +1240,25 @@ public class Ch25TextureMapping {
                  barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
                  barrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
                  barrier.image(image);
@@ -346,7 +338,7 @@ index 51e3cad..dfd94d9 100644
                  int sourceStage;
                  int destinationStage;
  
-@@ -1149,6 +1279,14 @@ public class Ch25TextureMapping {
+@@ -1149,6 +1278,14 @@ public class Ch25TextureMapping {
                      sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
                      destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
  
@@ -361,7 +353,54 @@ index 51e3cad..dfd94d9 100644
                  } else {
                      throw new IllegalArgumentException("Unsupported layout transition");
                  }
-@@ -1486,6 +1624,7 @@ public class Ch25TextureMapping {
+@@ -1306,7 +1443,7 @@ public class Ch25TextureMapping {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(2, stack);
++                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.callocStack(2, stack);
+ 
+                 VkDescriptorPoolSize uniformBufferPoolSize = poolSizes.get(0);
+                 uniformBufferPoolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+@@ -1316,7 +1453,7 @@ public class Ch25TextureMapping {
+                 textureSamplerPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                 textureSamplerPoolSize.descriptorCount(swapChainImages.size());
+ 
+-                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.calloc(stack);
++                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
+                 poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+                 poolInfo.pPoolSizes(poolSizes);
+                 poolInfo.maxSets(swapChainImages.size());
+@@ -1340,7 +1477,7 @@ public class Ch25TextureMapping {
+                     layouts.put(i, descriptorSetLayout);
+                 }
+ 
+-                VkDescriptorSetAllocateInfo allocInfo = VkDescriptorSetAllocateInfo.calloc(stack);
++                VkDescriptorSetAllocateInfo allocInfo = VkDescriptorSetAllocateInfo.callocStack(stack);
+                 allocInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
+                 allocInfo.descriptorPool(descriptorPool);
+                 allocInfo.pSetLayouts(layouts);
+@@ -1353,16 +1490,16 @@ public class Ch25TextureMapping {
+ 
+                 descriptorSets = new ArrayList<>(pDescriptorSets.capacity());
+ 
+-                VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.calloc(1, stack);
++                VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.callocStack(1, stack);
+                 bufferInfo.offset(0);
+                 bufferInfo.range(UniformBufferObject.SIZEOF);
+ 
+-                VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.calloc(1, stack);
++                VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.callocStack(1, stack);
+                 imageInfo.imageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                 imageInfo.imageView(textureImageView);
+                 imageInfo.sampler(textureSampler);
+ 
+-                VkWriteDescriptorSet.Buffer descriptorWrites = VkWriteDescriptorSet.calloc(2, stack);
++                VkWriteDescriptorSet.Buffer descriptorWrites = VkWriteDescriptorSet.callocStack(2, stack);
+ 
+                 VkWriteDescriptorSet uboDescriptorWrite = descriptorWrites.get(0);
+                 uboDescriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
+@@ -1486,6 +1623,7 @@ public class Ch25TextureMapping {
              for(Vertex vertex : vertices) {
                  buffer.putFloat(vertex.pos.x());
                  buffer.putFloat(vertex.pos.y());
@@ -369,7 +408,7 @@ index 51e3cad..dfd94d9 100644
  
                  buffer.putFloat(vertex.color.x());
                  buffer.putFloat(vertex.color.y());
-@@ -1565,8 +1704,10 @@ public class Ch25TextureMapping {
+@@ -1565,8 +1703,10 @@ public class Ch25TextureMapping {
                  renderArea.extent(swapChainExtent);
                  renderPassInfo.renderArea(renderArea);
  

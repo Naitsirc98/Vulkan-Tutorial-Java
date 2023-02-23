@@ -175,7 +175,7 @@ private void createInstance() {
 
         // Use calloc to initialize the structs with 0s. Otherwise, the program can crash due to random values
 
-        VkApplicationInfo appInfo = VkApplicationInfo.callocStack(stack);
+        VkApplicationInfo appInfo = VkApplicationInfo.calloc(stack);
 
         appInfo.sType(VK_STRUCTURE_TYPE_APPLICATION_INFO);
         appInfo.pApplicationName(stack.UTF8Safe("Hello Triangle"));
@@ -184,7 +184,7 @@ private void createInstance() {
         appInfo.engineVersion(VK_MAKE_VERSION(1, 0, 0));
         appInfo.apiVersion(VK_API_VERSION_1_0);
 
-        VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.callocStack(stack);
+        VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc(stack);
 
         createInfo.sType(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
         createInfo.pApplicationInfo(appInfo);

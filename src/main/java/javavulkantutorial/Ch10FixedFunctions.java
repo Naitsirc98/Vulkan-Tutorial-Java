@@ -210,7 +210,7 @@ public class Ch10FixedFunctions {
 
                 // Use calloc to initialize the structs with 0s. Otherwise, the program can crash due to random values
 
-                VkApplicationInfo appInfo = VkApplicationInfo.callocStack(stack);
+                VkApplicationInfo appInfo = VkApplicationInfo.calloc(stack);
 
                 appInfo.sType(VK_STRUCTURE_TYPE_APPLICATION_INFO);
                 appInfo.pApplicationName(stack.UTF8Safe("Hello Triangle"));
@@ -219,18 +219,18 @@ public class Ch10FixedFunctions {
                 appInfo.engineVersion(VK_MAKE_VERSION(1, 0, 0));
                 appInfo.apiVersion(VK_API_VERSION_1_0);
 
-                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.callocStack(stack);
+                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
                 createInfo.pApplicationInfo(appInfo);
                 // enabledExtensionCount is implicitly set when you call ppEnabledExtensionNames
-                createInfo.ppEnabledExtensionNames(getRequiredExtensions());
+                createInfo.ppEnabledExtensionNames(getRequiredExtensions(stack));
 
                 if(ENABLE_VALIDATION_LAYERS) {
 
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(asPointerBuffer(stack, VALIDATION_LAYERS));
 
-                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
                     populateDebugMessengerCreateInfo(debugCreateInfo);
                     createInfo.pNext(debugCreateInfo.address());
                 }
@@ -261,7 +261,7 @@ public class Ch10FixedFunctions {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
 
                 populateDebugMessengerCreateInfo(createInfo);
 
@@ -327,7 +327,7 @@ public class Ch10FixedFunctions {
 
                 int[] uniqueQueueFamilies = indices.unique();
 
-                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(uniqueQueueFamilies.length, stack);
+                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueQueueFamilies.length, stack);
 
                 for(int i = 0;i < uniqueQueueFamilies.length;i++) {
                     VkDeviceQueueCreateInfo queueCreateInfo = queueCreateInfos.get(i);
@@ -336,9 +336,9 @@ public class Ch10FixedFunctions {
                     queueCreateInfo.pQueuePriorities(stack.floats(1.0f));
                 }
 
-                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
 
-                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
+                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
                 createInfo.pQueueCreateInfos(queueCreateInfos);
@@ -346,10 +346,10 @@ public class Ch10FixedFunctions {
 
                 createInfo.pEnabledFeatures(deviceFeatures);
 
-                createInfo.ppEnabledExtensionNames(asPointerBuffer(DEVICE_EXTENSIONS));
+                createInfo.ppEnabledExtensionNames(asPointerBuffer(stack, DEVICE_EXTENSIONS));
 
                 if(ENABLE_VALIDATION_LAYERS) {
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(asPointerBuffer(stack, VALIDATION_LAYERS));
                 }
 
                 PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
@@ -378,7 +378,7 @@ public class Ch10FixedFunctions {
 
                 VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
                 int presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-                VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+                VkExtent2D extent = chooseSwapExtent(stack, swapChainSupport.capabilities);
 
                 IntBuffer imageCount = stack.ints(swapChainSupport.capabilities.minImageCount() + 1);
 
@@ -386,7 +386,7 @@ public class Ch10FixedFunctions {
                     imageCount.put(0, swapChainSupport.capabilities.maxImageCount());
                 }
 
-                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.callocStack(stack);
+                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
                 createInfo.surface(surface);
@@ -450,7 +450,7 @@ public class Ch10FixedFunctions {
 
                 for(long swapChainImage : swapChainImages) {
 
-                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
+                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.calloc(stack);
 
                     createInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
                     createInfo.image(swapChainImage);
@@ -492,7 +492,7 @@ public class Ch10FixedFunctions {
 
                 ByteBuffer entryPoint = stack.UTF8("main");
 
-                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.callocStack(2, stack);
+                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.calloc(2, stack);
 
                 VkPipelineShaderStageCreateInfo vertShaderStageInfo = shaderStages.get(0);
 
@@ -510,19 +510,19 @@ public class Ch10FixedFunctions {
 
                 // ===> VERTEX STAGE <===
 
-                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
+                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.calloc(stack);
                 vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
 
                 // ===> ASSEMBLY STAGE <===
 
-                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.callocStack(stack);
+                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.calloc(stack);
                 inputAssembly.sType(VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO);
                 inputAssembly.topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
                 inputAssembly.primitiveRestartEnable(false);
 
                 // ===> VIEWPORT & SCISSOR
 
-                VkViewport.Buffer viewport = VkViewport.callocStack(1, stack);
+                VkViewport.Buffer viewport = VkViewport.calloc(1, stack);
                 viewport.x(0.0f);
                 viewport.y(0.0f);
                 viewport.width(swapChainExtent.width());
@@ -530,18 +530,18 @@ public class Ch10FixedFunctions {
                 viewport.minDepth(0.0f);
                 viewport.maxDepth(1.0f);
 
-                VkRect2D.Buffer scissor = VkRect2D.callocStack(1, stack);
-                scissor.offset(VkOffset2D.callocStack(stack).set(0, 0));
+                VkRect2D.Buffer scissor = VkRect2D.calloc(1, stack);
+                scissor.offset(VkOffset2D.calloc(stack).set(0, 0));
                 scissor.extent(swapChainExtent);
 
-                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.callocStack(stack);
+                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.calloc(stack);
                 viewportState.sType(VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO);
                 viewportState.pViewports(viewport);
                 viewportState.pScissors(scissor);
 
                 // ===> RASTERIZATION STAGE <===
 
-                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.callocStack(stack);
+                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.calloc(stack);
                 rasterizer.sType(VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO);
                 rasterizer.depthClampEnable(false);
                 rasterizer.rasterizerDiscardEnable(false);
@@ -553,18 +553,18 @@ public class Ch10FixedFunctions {
 
                 // ===> MULTISAMPLING <===
 
-                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.callocStack(stack);
+                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.calloc(stack);
                 multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
                 multisampling.sampleShadingEnable(false);
                 multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
 
                 // ===> COLOR BLENDING <===
 
-                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.callocStack(1, stack);
+                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);
                 colorBlendAttachment.colorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
                 colorBlendAttachment.blendEnable(false);
 
-                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.callocStack(stack);
+                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.calloc(stack);
                 colorBlending.sType(VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);
                 colorBlending.logicOpEnable(false);
                 colorBlending.logicOp(VK_LOGIC_OP_COPY);
@@ -573,7 +573,7 @@ public class Ch10FixedFunctions {
 
                 // ===> PIPELINE LAYOUT CREATION <===
 
-                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
+                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack);
                 pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
 
                 LongBuffer pPipelineLayout = stack.longs(VK_NULL_HANDLE);
@@ -599,7 +599,7 @@ public class Ch10FixedFunctions {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.callocStack(stack);
+                VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
                 createInfo.pCode(spirvCode);
@@ -633,13 +633,13 @@ public class Ch10FixedFunctions {
             return VK_PRESENT_MODE_FIFO_KHR;
         }
 
-        private VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR capabilities) {
+        private VkExtent2D chooseSwapExtent(MemoryStack stack, VkSurfaceCapabilitiesKHR capabilities) {
 
             if(capabilities.currentExtent().width() != UINT32_MAX) {
                 return capabilities.currentExtent();
             }
 
-            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(WIDTH, HEIGHT);
+            VkExtent2D actualExtent = VkExtent2D.malloc(stack).set(WIDTH, HEIGHT);
 
             VkExtent2D minExtent = capabilities.minImageExtent();
             VkExtent2D maxExtent = capabilities.maxImageExtent();
@@ -679,7 +679,7 @@ public class Ch10FixedFunctions {
 
                 vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, null);
 
-                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.mallocStack(extensionCount.get(0), stack);
+                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.malloc(extensionCount.get(0), stack);
 
                 vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, availableExtensions);
 
@@ -694,7 +694,7 @@ public class Ch10FixedFunctions {
 
             SwapChainSupportDetails details = new SwapChainSupportDetails();
 
-            details.capabilities = VkSurfaceCapabilitiesKHR.mallocStack(stack);
+            details.capabilities = VkSurfaceCapabilitiesKHR.malloc(stack);
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, details.capabilities);
 
             IntBuffer count = stack.ints(0);
@@ -702,7 +702,7 @@ public class Ch10FixedFunctions {
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, null);
 
             if(count.get(0) != 0) {
-                details.formats = VkSurfaceFormatKHR.mallocStack(count.get(0), stack);
+                details.formats = VkSurfaceFormatKHR.malloc(count.get(0), stack);
                 vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, details.formats);
             }
 
@@ -726,7 +726,7 @@ public class Ch10FixedFunctions {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
 
-                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.mallocStack(queueFamilyCount.get(0), stack);
+                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.malloc(queueFamilyCount.get(0), stack);
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
@@ -749,9 +749,7 @@ public class Ch10FixedFunctions {
             }
         }
 
-        private PointerBuffer asPointerBuffer(Collection<String> collection) {
-
-            MemoryStack stack = stackGet();
+        private PointerBuffer asPointerBuffer(MemoryStack stack, Collection<String> collection) {
 
             PointerBuffer buffer = stack.mallocPointer(collection.size());
 
@@ -762,13 +760,11 @@ public class Ch10FixedFunctions {
             return buffer.rewind();
         }
 
-        private PointerBuffer getRequiredExtensions() {
+        private PointerBuffer getRequiredExtensions(MemoryStack stack) {
 
             PointerBuffer glfwExtensions = glfwGetRequiredInstanceExtensions();
 
             if(ENABLE_VALIDATION_LAYERS) {
-
-                MemoryStack stack = stackGet();
 
                 PointerBuffer extensions = stack.mallocPointer(glfwExtensions.capacity() + 1);
 
@@ -790,7 +786,7 @@ public class Ch10FixedFunctions {
 
                 vkEnumerateInstanceLayerProperties(layerCount, null);
 
-                VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(layerCount.get(0), stack);
+                VkLayerProperties.Buffer availableLayers = VkLayerProperties.malloc(layerCount.get(0), stack);
 
                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
 

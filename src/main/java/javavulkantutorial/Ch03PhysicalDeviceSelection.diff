@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch02ValidationLayers.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch03PhysicalDeviceSelection.java"
-index 3d085be..faf1ba6 100644
+index 4bf9c62..a6e48df 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch02ValidationLayers.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch03PhysicalDeviceSelection.java"
 @@ -8,6 +8,7 @@ import java.nio.IntBuffer;
@@ -102,7 +102,7 @@ index 3d085be..faf1ba6 100644
 +
 +                vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
 +
-+                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.mallocStack(queueFamilyCount.get(0), stack);
++                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.malloc(queueFamilyCount.get(0), stack);
 +
 +                vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 +
@@ -115,6 +115,6 @@ index 3d085be..faf1ba6 100644
 +            }
 +        }
 +
-         private PointerBuffer validationLayersAsPointerBuffer() {
+         private PointerBuffer validationLayersAsPointerBuffer(MemoryStack stack) {
  
-             MemoryStack stack = stackGet();
+             PointerBuffer buffer = stack.mallocPointer(VALIDATION_LAYERS.size());

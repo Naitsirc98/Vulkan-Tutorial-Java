@@ -10,145 +10,19 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-assimp/3.2.3/lwjgl-assimp-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl/3.2.3/lwjgl-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl/3.2.3/lwjgl-3.2.3-natives-windows.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-stb/3.2.3/lwjgl-stb-3.2.3-natives-windows.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-assimp/3.2.3/lwjgl-assimp-3.2.3-natives-windows.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-shaderc/3.2.3/lwjgl-shaderc-3.2.3-natives-windows.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-glfw/3.2.3/lwjgl-glfw-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-stb/3.2.3/lwjgl-stb-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-glfw/3.2.3/lwjgl-glfw-3.2.3-natives-windows.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/joml/joml/1.9.20/joml-1.9.20.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-shaderc/3.2.3/lwjgl-shaderc-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-openal/3.2.3/lwjgl-openal-3.2.3-natives-windows.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-vulkan/3.2.3/lwjgl-vulkan-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/lwjgl/lwjgl-openal/3.2.3/lwjgl-openal-3.2.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-assimp:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-glfw:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-openal:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-shaderc:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-stb:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-vulkan:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl:natives-windows:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-assimp:natives-windows:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-glfw:natives-windows:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-openal:natives-windows:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-shaderc:natives-windows:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-stb:natives-windows:3.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.joml:joml:1.9.20" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-assimp:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-glfw:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-openal:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-shaderc:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-stb:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-vulkan:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl:natives-windows:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-assimp:natives-windows:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-glfw:natives-windows:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-openal:natives-windows:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-shaderc:natives-windows:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl:lwjgl-stb:natives-windows:3.3.1" level="project" />
+    <orderEntry type="library" name="Maven: org.joml:joml:1.10.5" level="project" />
   </component>
 </module>

@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch22DescriptorSets.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch23TextureImage.java"
-index 0b09c7a..597ff20 100644
+index 6173ec8..17a02f4 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch22DescriptorSets.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch23TextureImage.java"
 @@ -15,6 +15,7 @@ import java.util.*;
@@ -132,7 +132,7 @@ index 0b09c7a..597ff20 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkImageCreateInfo imageInfo = VkImageCreateInfo.callocStack(stack);
++                VkImageCreateInfo imageInfo = VkImageCreateInfo.calloc(stack);
 +                imageInfo.sType(VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
 +                imageInfo.imageType(VK_IMAGE_TYPE_2D);
 +                imageInfo.extent().width(width);
@@ -151,13 +151,13 @@ index 0b09c7a..597ff20 100644
 +                    throw new RuntimeException("Failed to create image");
 +                }
 +
-+                VkMemoryRequirements memRequirements = VkMemoryRequirements.mallocStack(stack);
++                VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
 +                vkGetImageMemoryRequirements(device, pTextureImage.get(0), memRequirements);
 +
-+                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
++                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack);
 +                allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
 +                allocInfo.allocationSize(memRequirements.size());
-+                allocInfo.memoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits(), memProperties));
++                allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(), memProperties));
 +
 +                if(vkAllocateMemory(device, allocInfo, null, pTextureImageMemory) != VK_SUCCESS) {
 +                    throw new RuntimeException("Failed to allocate image memory");
@@ -171,7 +171,7 @@ index 0b09c7a..597ff20 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.callocStack(1, stack);
++                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.calloc(1, stack);
 +                barrier.sType(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
 +                barrier.oldLayout(oldLayout);
 +                barrier.newLayout(newLayout);
@@ -226,7 +226,7 @@ index 0b09c7a..597ff20 100644
 +
 +                VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 +
-+                VkBufferImageCopy.Buffer region = VkBufferImageCopy.callocStack(1, stack);
++                VkBufferImageCopy.Buffer region = VkBufferImageCopy.calloc(1, stack);
 +                region.bufferOffset(0);
 +                region.bufferRowLength(0);   // Tightly packed
 +                region.bufferImageHeight(0);  // Tightly packed
@@ -235,7 +235,7 @@ index 0b09c7a..597ff20 100644
 +                region.imageSubresource().baseArrayLayer(0);
 +                region.imageSubresource().layerCount(1);
 +                region.imageOffset().set(0, 0, 0);
-+                region.imageExtent(VkExtent3D.callocStack(stack).set(width, height, 1));
++                region.imageExtent(VkExtent3D.calloc(stack).set(width, height, 1));
 +
 +                vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, region);
 +
@@ -252,7 +252,16 @@ index 0b09c7a..597ff20 100644
          private void createVertexBuffer() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1148,7 +1343,7 @@ public class Ch22DescriptorSets {
+@@ -1135,7 +1330,7 @@ public class Ch22DescriptorSets {
+                 VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
+                 vkGetBufferMemoryRequirements(device, pBuffer.get(0), memRequirements);
+ 
+-                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack);
++                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
+                 allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+                 allocInfo.allocationSize(memRequirements.size());
+                 allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(), properties));
+@@ -1148,11 +1343,11 @@ public class Ch22DescriptorSets {
              }
          }
  
@@ -261,12 +270,23 @@ index 0b09c7a..597ff20 100644
  
              try(MemoryStack stack = stackPush()) {
  
-@@ -1167,24 +1362,40 @@ public class Ch22DescriptorSets {
+-                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
++                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
+                 allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+                 allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+                 allocInfo.commandPool(commandPool);
+@@ -1162,29 +1357,45 @@ public class Ch22DescriptorSets {
+                 vkAllocateCommandBuffers(device, allocInfo, pCommandBuffer);
+                 VkCommandBuffer commandBuffer = new VkCommandBuffer(pCommandBuffer.get(0), device);
+ 
+-                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack);
++                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
+                 beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
                  beginInfo.flags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
  
                  vkBeginCommandBuffer(commandBuffer, beginInfo);
 -                {
--                    VkBufferCopy.Buffer copyRegion = VkBufferCopy.callocStack(1, stack);
+-                    VkBufferCopy.Buffer copyRegion = VkBufferCopy.calloc(1, stack);
 -                    copyRegion.size(size);
 -                    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, copyRegion);
 -                }

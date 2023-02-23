@@ -3,7 +3,6 @@ package javavulkantutorial;
 import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
 import org.joml.*;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Pointer;
 import org.lwjgl.vulkan.*;
@@ -155,10 +154,10 @@ public class Ch26DepthBuffering {
                 this.texCoords = texCoords;
             }
 
-            private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
+            private static VkVertexInputBindingDescription.Buffer getBindingDescription(MemoryStack stack) {
 
                 VkVertexInputBindingDescription.Buffer bindingDescription =
-                        VkVertexInputBindingDescription.callocStack(1);
+                        VkVertexInputBindingDescription.calloc(1, stack);
 
                 bindingDescription.binding(0);
                 bindingDescription.stride(Vertex.SIZEOF);
@@ -167,10 +166,10 @@ public class Ch26DepthBuffering {
                 return bindingDescription;
             }
 
-            private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
+            private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions(MemoryStack stack) {
 
                 VkVertexInputAttributeDescription.Buffer attributeDescriptions =
-                        VkVertexInputAttributeDescription.callocStack(3);
+                        VkVertexInputAttributeDescription.calloc(3, stack);
 
                 // Position
                 VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
@@ -351,7 +350,7 @@ public class Ch26DepthBuffering {
 
             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
 
-            vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
+            try(MemoryStack stack = stackPush()) {vkFreeCommandBuffers(device, commandPool, asPointerBuffer(stack, commandBuffers));}
 
             vkDestroyPipeline(device, graphicsPipeline, null);
 
@@ -449,7 +448,7 @@ public class Ch26DepthBuffering {
 
                 // Use calloc to initialize the structs with 0s. Otherwise, the program can crash due to random values
 
-                VkApplicationInfo appInfo = VkApplicationInfo.callocStack(stack);
+                VkApplicationInfo appInfo = VkApplicationInfo.calloc(stack);
 
                 appInfo.sType(VK_STRUCTURE_TYPE_APPLICATION_INFO);
                 appInfo.pApplicationName(stack.UTF8Safe("Hello Triangle"));
@@ -458,18 +457,18 @@ public class Ch26DepthBuffering {
                 appInfo.engineVersion(VK_MAKE_VERSION(1, 0, 0));
                 appInfo.apiVersion(VK_API_VERSION_1_0);
 
-                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.callocStack(stack);
+                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
                 createInfo.pApplicationInfo(appInfo);
                 // enabledExtensionCount is implicitly set when you call ppEnabledExtensionNames
-                createInfo.ppEnabledExtensionNames(getRequiredExtensions());
+                createInfo.ppEnabledExtensionNames(getRequiredExtensions(stack));
 
                 if(ENABLE_VALIDATION_LAYERS) {
 
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(asPointerBuffer(stack, VALIDATION_LAYERS));
 
-                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
                     populateDebugMessengerCreateInfo(debugCreateInfo);
                     createInfo.pNext(debugCreateInfo.address());
                 }
@@ -500,7 +499,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
 
                 populateDebugMessengerCreateInfo(createInfo);
 
@@ -566,7 +565,7 @@ public class Ch26DepthBuffering {
 
                 int[] uniqueQueueFamilies = indices.unique();
 
-                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(uniqueQueueFamilies.length, stack);
+                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueQueueFamilies.length, stack);
 
                 for(int i = 0;i < uniqueQueueFamilies.length;i++) {
                     VkDeviceQueueCreateInfo queueCreateInfo = queueCreateInfos.get(i);
@@ -575,10 +574,10 @@ public class Ch26DepthBuffering {
                     queueCreateInfo.pQueuePriorities(stack.floats(1.0f));
                 }
 
-                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
                 deviceFeatures.samplerAnisotropy(true);
 
-                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
+                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
                 createInfo.pQueueCreateInfos(queueCreateInfos);
@@ -586,10 +585,10 @@ public class Ch26DepthBuffering {
 
                 createInfo.pEnabledFeatures(deviceFeatures);
 
-                createInfo.ppEnabledExtensionNames(asPointerBuffer(DEVICE_EXTENSIONS));
+                createInfo.ppEnabledExtensionNames(asPointerBuffer(stack, DEVICE_EXTENSIONS));
 
                 if(ENABLE_VALIDATION_LAYERS) {
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(asPointerBuffer(stack, VALIDATION_LAYERS));
                 }
 
                 PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
@@ -618,7 +617,7 @@ public class Ch26DepthBuffering {
 
                 VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
                 int presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-                VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+                VkExtent2D extent = chooseSwapExtent(stack, swapChainSupport.capabilities);
 
                 IntBuffer imageCount = stack.ints(swapChainSupport.capabilities.minImageCount() + 1);
 
@@ -626,7 +625,7 @@ public class Ch26DepthBuffering {
                     imageCount.put(0, swapChainSupport.capabilities.maxImageCount());
                 }
 
-                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.callocStack(stack);
+                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
                 createInfo.surface(surface);
@@ -693,8 +692,8 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.callocStack(2, stack);
-                VkAttachmentReference.Buffer attachmentRefs = VkAttachmentReference.callocStack(2, stack);
+                VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.calloc(2, stack);
+                VkAttachmentReference.Buffer attachmentRefs = VkAttachmentReference.calloc(2, stack);
 
                 // Color attachments
 
@@ -730,13 +729,13 @@ public class Ch26DepthBuffering {
                 depthAttachmentRef.attachment(1);
                 depthAttachmentRef.layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-                VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
+                VkSubpassDescription.Buffer subpass = VkSubpassDescription.calloc(1, stack);
                 subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
                 subpass.colorAttachmentCount(1);
-                subpass.pColorAttachments(VkAttachmentReference.callocStack(1, stack).put(0, colorAttachmentRef));
+                subpass.pColorAttachments(VkAttachmentReference.calloc(1, stack).put(0, colorAttachmentRef));
                 subpass.pDepthStencilAttachment(depthAttachmentRef);
 
-                VkSubpassDependency.Buffer dependency = VkSubpassDependency.callocStack(1, stack);
+                VkSubpassDependency.Buffer dependency = VkSubpassDependency.calloc(1, stack);
                 dependency.srcSubpass(VK_SUBPASS_EXTERNAL);
                 dependency.dstSubpass(0);
                 dependency.srcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
@@ -744,7 +743,7 @@ public class Ch26DepthBuffering {
                 dependency.dstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
                 dependency.dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
 
-                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
+                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.calloc(stack);
                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
                 renderPassInfo.pAttachments(attachments);
                 renderPassInfo.pSubpasses(subpass);
@@ -764,7 +763,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkDescriptorSetLayoutBinding.Buffer bindings = VkDescriptorSetLayoutBinding.callocStack(2, stack);
+                VkDescriptorSetLayoutBinding.Buffer bindings = VkDescriptorSetLayoutBinding.calloc(2, stack);
 
                 VkDescriptorSetLayoutBinding uboLayoutBinding = bindings.get(0);
                 uboLayoutBinding.binding(0);
@@ -780,7 +779,7 @@ public class Ch26DepthBuffering {
                 samplerLayoutBinding.pImmutableSamplers(null);
                 samplerLayoutBinding.stageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
 
-                VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.callocStack(stack);
+                VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.calloc(stack);
                 layoutInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
                 layoutInfo.pBindings(bindings);
 
@@ -807,7 +806,7 @@ public class Ch26DepthBuffering {
 
                 ByteBuffer entryPoint = stack.UTF8("main");
 
-                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.callocStack(2, stack);
+                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.calloc(2, stack);
 
                 VkPipelineShaderStageCreateInfo vertShaderStageInfo = shaderStages.get(0);
 
@@ -825,21 +824,21 @@ public class Ch26DepthBuffering {
 
                 // ===> VERTEX STAGE <===
 
-                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
+                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.calloc(stack);
                 vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
-                vertexInputInfo.pVertexBindingDescriptions(Vertex.getBindingDescription());
-                vertexInputInfo.pVertexAttributeDescriptions(Vertex.getAttributeDescriptions());
+                vertexInputInfo.pVertexBindingDescriptions(Vertex.getBindingDescription(stack));
+                vertexInputInfo.pVertexAttributeDescriptions(Vertex.getAttributeDescriptions(stack));
 
                 // ===> ASSEMBLY STAGE <===
 
-                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.callocStack(stack);
+                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.calloc(stack);
                 inputAssembly.sType(VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO);
                 inputAssembly.topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
                 inputAssembly.primitiveRestartEnable(false);
 
                 // ===> VIEWPORT & SCISSOR
 
-                VkViewport.Buffer viewport = VkViewport.callocStack(1, stack);
+                VkViewport.Buffer viewport = VkViewport.calloc(1, stack);
                 viewport.x(0.0f);
                 viewport.y(0.0f);
                 viewport.width(swapChainExtent.width());
@@ -847,18 +846,18 @@ public class Ch26DepthBuffering {
                 viewport.minDepth(0.0f);
                 viewport.maxDepth(1.0f);
 
-                VkRect2D.Buffer scissor = VkRect2D.callocStack(1, stack);
-                scissor.offset(VkOffset2D.callocStack(stack).set(0, 0));
+                VkRect2D.Buffer scissor = VkRect2D.calloc(1, stack);
+                scissor.offset(VkOffset2D.calloc(stack).set(0, 0));
                 scissor.extent(swapChainExtent);
 
-                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.callocStack(stack);
+                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.calloc(stack);
                 viewportState.sType(VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO);
                 viewportState.pViewports(viewport);
                 viewportState.pScissors(scissor);
 
                 // ===> RASTERIZATION STAGE <===
 
-                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.callocStack(stack);
+                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.calloc(stack);
                 rasterizer.sType(VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO);
                 rasterizer.depthClampEnable(false);
                 rasterizer.rasterizerDiscardEnable(false);
@@ -870,12 +869,12 @@ public class Ch26DepthBuffering {
 
                 // ===> MULTISAMPLING <===
 
-                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.callocStack(stack);
+                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.calloc(stack);
                 multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
                 multisampling.sampleShadingEnable(false);
                 multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
 
-                VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.callocStack(stack);
+                VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc(stack);
                 depthStencil.sType(VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
                 depthStencil.depthTestEnable(true);
                 depthStencil.depthWriteEnable(true);
@@ -887,11 +886,11 @@ public class Ch26DepthBuffering {
 
                 // ===> COLOR BLENDING <===
 
-                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.callocStack(1, stack);
+                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);
                 colorBlendAttachment.colorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
                 colorBlendAttachment.blendEnable(false);
 
-                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.callocStack(stack);
+                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.calloc(stack);
                 colorBlending.sType(VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);
                 colorBlending.logicOpEnable(false);
                 colorBlending.logicOp(VK_LOGIC_OP_COPY);
@@ -900,7 +899,7 @@ public class Ch26DepthBuffering {
 
                 // ===> PIPELINE LAYOUT CREATION <===
 
-                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
+                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack);
                 pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
                 pipelineLayoutInfo.pSetLayouts(stack.longs(descriptorSetLayout));
 
@@ -912,7 +911,7 @@ public class Ch26DepthBuffering {
 
                 pipelineLayout = pPipelineLayout.get(0);
 
-                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.callocStack(1, stack);
+                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.calloc(1, stack);
                 pipelineInfo.sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
                 pipelineInfo.pStages(shaderStages);
                 pipelineInfo.pVertexInputState(vertexInputInfo);
@@ -956,7 +955,7 @@ public class Ch26DepthBuffering {
                 LongBuffer pFramebuffer = stack.mallocLong(1);
 
                 // Lets allocate the create info struct once and just update the pAttachments field each iteration
-                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.callocStack(stack);
+                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.calloc(stack);
                 framebufferInfo.sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
                 framebufferInfo.renderPass(renderPass);
                 framebufferInfo.width(swapChainExtent.width());
@@ -984,7 +983,7 @@ public class Ch26DepthBuffering {
 
                 QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.callocStack(stack);
+                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.calloc(stack);
                 poolInfo.sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
                 poolInfo.queueFamilyIndex(queueFamilyIndices.graphicsFamily);
 
@@ -1032,7 +1031,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkFormatProperties props = VkFormatProperties.callocStack(stack);
+                VkFormatProperties props = VkFormatProperties.calloc(stack);
 
                 for(int i = 0; i < formatCandidates.capacity(); ++i) {
 
@@ -1140,7 +1139,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkSamplerCreateInfo samplerInfo = VkSamplerCreateInfo.callocStack(stack);
+                VkSamplerCreateInfo samplerInfo = VkSamplerCreateInfo.calloc(stack);
                 samplerInfo.sType(VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO);
                 samplerInfo.magFilter(VK_FILTER_LINEAR);
                 samplerInfo.minFilter(VK_FILTER_LINEAR);
@@ -1169,7 +1168,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkImageViewCreateInfo viewInfo = VkImageViewCreateInfo.callocStack(stack);
+                VkImageViewCreateInfo viewInfo = VkImageViewCreateInfo.calloc(stack);
                 viewInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
                 viewInfo.image(image);
                 viewInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
@@ -1195,7 +1194,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkImageCreateInfo imageInfo = VkImageCreateInfo.callocStack(stack);
+                VkImageCreateInfo imageInfo = VkImageCreateInfo.calloc(stack);
                 imageInfo.sType(VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
                 imageInfo.imageType(VK_IMAGE_TYPE_2D);
                 imageInfo.extent().width(width);
@@ -1214,13 +1213,13 @@ public class Ch26DepthBuffering {
                     throw new RuntimeException("Failed to create image");
                 }
 
-                VkMemoryRequirements memRequirements = VkMemoryRequirements.mallocStack(stack);
+                VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
                 vkGetImageMemoryRequirements(device, pTextureImage.get(0), memRequirements);
 
-                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
+                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack);
                 allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
                 allocInfo.allocationSize(memRequirements.size());
-                allocInfo.memoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits(), memProperties));
+                allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(), memProperties));
 
                 if(vkAllocateMemory(device, allocInfo, null, pTextureImageMemory) != VK_SUCCESS) {
                     throw new RuntimeException("Failed to allocate image memory");
@@ -1234,7 +1233,7 @@ public class Ch26DepthBuffering {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.callocStack(1, stack);
+                VkImageMemoryBarrier.Buffer barrier = VkImageMemoryBarrier.calloc(1, stack);
                 barrier.sType(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
                 barrier.oldLayout(oldLayout);
                 barrier.newLayout(newLayout);
@@ -1310,7 +1309,7 @@ public class Ch26DepthBuffering {
 
                 VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-                VkBufferImageCopy.Buffer region = VkBufferImageCopy.callocStack(1, stack);
+                VkBufferImageCopy.Buffer region = VkBufferImageCopy.calloc(1, stack);
                 region.bufferOffset(0);
                 region.bufferRowLength(0);   // Tightly packed
                 region.bufferImageHeight(0);  // Tightly packed
@@ -1319,7 +1318,7 @@ public class Ch26DepthBuffering {
                 region.imageSubresource().baseArrayLayer(0);
                 region.imageSubresource().layerCount(1);
                 region.imageOffset().set(0, 0, 0);
-                region.imageExtent(VkExtent3D.callocStack(stack).set(width, height, 1));
+                region.imageExtent(VkExtent3D.calloc(stack).set(width, height, 1));
 
                 vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, region);
 
@@ -1548,13 +1547,13 @@ public class Ch26DepthBuffering {
                     throw new RuntimeException("Failed to create vertex buffer");
                 }
 
-                VkMemoryRequirements memRequirements = VkMemoryRequirements.mallocStack(stack);
+                VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
                 vkGetBufferMemoryRequirements(device, pBuffer.get(0), memRequirements);
 
                 VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
                 allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
                 allocInfo.allocationSize(memRequirements.size());
-                allocInfo.memoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits(), properties));
+                allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(), properties));
 
                 if(vkAllocateMemory(device, allocInfo, null, pBufferMemory) != VK_SUCCESS) {
                     throw new RuntimeException("Failed to allocate vertex buffer memory");
@@ -1653,9 +1652,9 @@ public class Ch26DepthBuffering {
             ubo.proj.get(alignas(mat4Size * 2, alignof(ubo.view)), buffer);
         }
 
-        private int findMemoryType(int typeFilter, int properties) {
+        private int findMemoryType(MemoryStack stack, int typeFilter, int properties) {
 
-            VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
+            VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.malloc(stack);
             vkGetPhysicalDeviceMemoryProperties(physicalDevice, memProperties);
 
             for(int i = 0;i < memProperties.memoryTypeCount();i++) {
@@ -1911,7 +1910,7 @@ public class Ch26DepthBuffering {
             return VK_PRESENT_MODE_FIFO_KHR;
         }
 
-        private VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR capabilities) {
+        private VkExtent2D chooseSwapExtent(MemoryStack stack, VkSurfaceCapabilitiesKHR capabilities) {
 
             if(capabilities.currentExtent().width() != UINT32_MAX) {
                 return capabilities.currentExtent();
@@ -1922,7 +1921,7 @@ public class Ch26DepthBuffering {
 
             glfwGetFramebufferSize(window, width, height);
 
-            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(width.get(0), height.get(0));
+            VkExtent2D actualExtent = VkExtent2D.malloc(stack).set(width.get(0), height.get(0));
 
             VkExtent2D minExtent = capabilities.minImageExtent();
             VkExtent2D maxExtent = capabilities.maxImageExtent();
@@ -1949,7 +1948,7 @@ public class Ch26DepthBuffering {
                 try(MemoryStack stack = stackPush()) {
                     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, stack);
                     swapChainAdequate = swapChainSupport.formats.hasRemaining() && swapChainSupport.presentModes.hasRemaining();
-                    VkPhysicalDeviceFeatures supportedFeatures = VkPhysicalDeviceFeatures.mallocStack(stack);
+                    VkPhysicalDeviceFeatures supportedFeatures = VkPhysicalDeviceFeatures.malloc(stack);
                     vkGetPhysicalDeviceFeatures(device, supportedFeatures);
                     anisotropySupported = supportedFeatures.samplerAnisotropy();
                 }
@@ -1966,7 +1965,7 @@ public class Ch26DepthBuffering {
 
                 vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, null);
 
-                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.mallocStack(extensionCount.get(0), stack);
+                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.malloc(extensionCount.get(0), stack);
 
                 vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, availableExtensions);
 
@@ -1981,7 +1980,7 @@ public class Ch26DepthBuffering {
 
             SwapChainSupportDetails details = new SwapChainSupportDetails();
 
-            details.capabilities = VkSurfaceCapabilitiesKHR.mallocStack(stack);
+            details.capabilities = VkSurfaceCapabilitiesKHR.malloc(stack);
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, details.capabilities);
 
             IntBuffer count = stack.ints(0);
@@ -1989,7 +1988,7 @@ public class Ch26DepthBuffering {
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, null);
 
             if(count.get(0) != 0) {
-                details.formats = VkSurfaceFormatKHR.mallocStack(count.get(0), stack);
+                details.formats = VkSurfaceFormatKHR.malloc(count.get(0), stack);
                 vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, details.formats);
             }
 
@@ -2013,7 +2012,7 @@ public class Ch26DepthBuffering {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
 
-                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.mallocStack(queueFamilyCount.get(0), stack);
+                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.malloc(queueFamilyCount.get(0), stack);
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
@@ -2036,9 +2035,7 @@ public class Ch26DepthBuffering {
             }
         }
 
-        private PointerBuffer asPointerBuffer(Collection<String> collection) {
-
-            MemoryStack stack = stackGet();
+        private PointerBuffer asPointerBuffer(MemoryStack stack, Collection<String> collection) {
 
             PointerBuffer buffer = stack.mallocPointer(collection.size());
 
@@ -2049,9 +2046,7 @@ public class Ch26DepthBuffering {
             return buffer.rewind();
         }
 
-        private PointerBuffer asPointerBuffer(List<? extends Pointer> list) {
-
-            MemoryStack stack = stackGet();
+        private PointerBuffer asPointerBuffer(MemoryStack stack, List<? extends Pointer> list) {
 
             PointerBuffer buffer = stack.mallocPointer(list.size());
 
@@ -2060,13 +2055,11 @@ public class Ch26DepthBuffering {
             return buffer.rewind();
         }
 
-        private PointerBuffer getRequiredExtensions() {
+        private PointerBuffer getRequiredExtensions(MemoryStack stack) {
 
             PointerBuffer glfwExtensions = glfwGetRequiredInstanceExtensions();
 
             if(ENABLE_VALIDATION_LAYERS) {
-
-                MemoryStack stack = stackGet();
 
                 PointerBuffer extensions = stack.mallocPointer(glfwExtensions.capacity() + 1);
 
@@ -2088,7 +2081,7 @@ public class Ch26DepthBuffering {
 
                 vkEnumerateInstanceLayerProperties(layerCount, null);
 
-                VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(layerCount.get(0), stack);
+                VkLayerProperties.Buffer availableLayers = VkLayerProperties.malloc(layerCount.get(0), stack);
 
                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
 

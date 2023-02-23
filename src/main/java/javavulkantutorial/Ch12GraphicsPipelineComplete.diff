@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java"
-index 139f975..5acde35 100644
+index 216e0f1..b836f3e 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -32,7 +32,7 @@ index 139f975..5acde35 100644
  
                  pipelineLayout = pPipelineLayout.get(0);
  
-+                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.callocStack(1, stack);
++                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.calloc(1, stack);
 +                pipelineInfo.sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
 +                pipelineInfo.pStages(shaderStages);
 +                pipelineInfo.pVertexInputState(vertexInputInfo);

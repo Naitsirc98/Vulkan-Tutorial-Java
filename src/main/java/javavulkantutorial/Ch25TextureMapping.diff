@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch25TextureMapping.java"
-index 180b920..51e3cad 100644
+index d7b4f7f..faac5b9 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch25TextureMapping.java"
 @@ -8,9 +8,12 @@ import org.lwjgl.system.Pointer;
@@ -45,13 +45,13 @@ index 180b920..51e3cad 100644
 +                this.texCoords = texCoords;
              }
  
-             private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
+             private static VkVertexInputBindingDescription.Buffer getBindingDescription(MemoryStack stack) {
 @@ -163,7 +169,7 @@ public class Ch24Sampler {
-             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
+             private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions(MemoryStack stack) {
  
                  VkVertexInputAttributeDescription.Buffer attributeDescriptions =
--                        VkVertexInputAttributeDescription.callocStack(2);
-+                        VkVertexInputAttributeDescription.callocStack(3);
+-                        VkVertexInputAttributeDescription.calloc(2);
++                        VkVertexInputAttributeDescription.calloc(3, stack);
  
                  // Position
                  VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
@@ -96,8 +96,8 @@ index 180b920..51e3cad 100644
  
              try(MemoryStack stack = stackPush()) {
  
--                VkDescriptorSetLayoutBinding.Buffer uboLayoutBinding = VkDescriptorSetLayoutBinding.callocStack(1, stack);
-+                VkDescriptorSetLayoutBinding.Buffer bindings = VkDescriptorSetLayoutBinding.callocStack(2, stack);
+-                VkDescriptorSetLayoutBinding.Buffer uboLayoutBinding = VkDescriptorSetLayoutBinding.calloc(1, stack);
++                VkDescriptorSetLayoutBinding.Buffer bindings = VkDescriptorSetLayoutBinding.calloc(2, stack);
 +
 +                VkDescriptorSetLayoutBinding uboLayoutBinding = bindings.get(0);
                  uboLayoutBinding.binding(0);
@@ -113,7 +113,7 @@ index 180b920..51e3cad 100644
 +                samplerLayoutBinding.pImmutableSamplers(null);
 +                samplerLayoutBinding.stageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
 +
-                 VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.callocStack(stack);
+                 VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.calloc(stack);
                  layoutInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
 -                layoutInfo.pBindings(uboLayoutBinding);
 +                layoutInfo.pBindings(bindings);
@@ -172,10 +172,10 @@ index 180b920..51e3cad 100644
  
              try(MemoryStack stack = stackPush()) {
  
--                VkDescriptorPoolSize.Buffer poolSize = VkDescriptorPoolSize.callocStack(1, stack);
+-                VkDescriptorPoolSize.Buffer poolSize = VkDescriptorPoolSize.calloc(1, stack);
 -                poolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 -                poolSize.descriptorCount(swapChainImages.size());
-+                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.callocStack(2, stack);
++                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(2, stack);
 +
 +                VkDescriptorPoolSize uniformBufferPoolSize = poolSizes.get(0);
 +                uniformBufferPoolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -185,7 +185,7 @@ index 180b920..51e3cad 100644
 +                textureSamplerPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 +                textureSamplerPoolSize.descriptorCount(swapChainImages.size());
  
-                 VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
+                 VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.calloc(stack);
                  poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
 -                poolInfo.pPoolSizes(poolSize);
 +                poolInfo.pPoolSizes(poolSizes);
@@ -196,19 +196,19 @@ index 180b920..51e3cad 100644
                  bufferInfo.offset(0);
                  bufferInfo.range(UniformBufferObject.SIZEOF);
  
--                VkWriteDescriptorSet.Buffer descriptorWrite = VkWriteDescriptorSet.callocStack(1, stack);
+-                VkWriteDescriptorSet.Buffer descriptorWrite = VkWriteDescriptorSet.calloc(1, stack);
 -                descriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
 -                descriptorWrite.dstBinding(0);
 -                descriptorWrite.dstArrayElement(0);
 -                descriptorWrite.descriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 -                descriptorWrite.descriptorCount(1);
 -                descriptorWrite.pBufferInfo(bufferInfo);
-+                VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.callocStack(1, stack);
++                VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.calloc(1, stack);
 +                imageInfo.imageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 +                imageInfo.imageView(textureImageView);
 +                imageInfo.sampler(textureSampler);
 +
-+                VkWriteDescriptorSet.Buffer descriptorWrites = VkWriteDescriptorSet.callocStack(2, stack);
++                VkWriteDescriptorSet.Buffer descriptorWrites = VkWriteDescriptorSet.calloc(2, stack);
 +
 +                VkWriteDescriptorSet uboDescriptorWrite = descriptorWrites.get(0);
 +                uboDescriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
@@ -241,6 +241,24 @@ index 180b920..51e3cad 100644
  
                      descriptorSets.add(descriptorSet);
                  }
+@@ -1353,7 +1400,7 @@ public class Ch24Sampler {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.calloc(stack);
++                VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.callocStack(stack);
+                 bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+                 bufferInfo.size(size);
+                 bufferInfo.usage(usage);
+@@ -1366,7 +1413,7 @@ public class Ch24Sampler {
+                 VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
+                 vkGetBufferMemoryRequirements(device, pBuffer.get(0), memRequirements);
+ 
+-                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack);
++                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
+                 allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+                 allocInfo.allocationSize(memRequirements.size());
+                 allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(), properties));
 @@ -1443,6 +1490,9 @@ public class Ch24Sampler {
                  buffer.putFloat(vertex.color.x());
                  buffer.putFloat(vertex.color.y());

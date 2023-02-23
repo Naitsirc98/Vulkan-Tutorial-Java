@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch18VertexBuffer.java"
-index 6196313..60ee5a9 100644
+index 4405dca..624eb7b 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch18VertexBuffer.java"
 @@ -33,7 +33,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -48,7 +48,7 @@ index 6196313..60ee5a9 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.callocStack(stack);
++                VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.calloc(stack);
 +                bufferInfo.sType(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
 +                bufferInfo.size(Vertex.SIZEOF * VERTICES.length);
 +                bufferInfo.usage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
@@ -61,13 +61,13 @@ index 6196313..60ee5a9 100644
 +                }
 +                vertexBuffer = pVertexBuffer.get(0);
 +
-+                VkMemoryRequirements memRequirements = VkMemoryRequirements.mallocStack(stack);
++                VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
 +                vkGetBufferMemoryRequirements(device, vertexBuffer, memRequirements);
 +
-+                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
++                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack);
 +                allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
 +                allocInfo.allocationSize(memRequirements.size());
-+                allocInfo.memoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits(),
++                allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(),
 +                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
 +
 +                LongBuffer pVertexBufferMemory = stack.mallocLong(1);
@@ -100,9 +100,9 @@ index 6196313..60ee5a9 100644
 +            }
 +        }
 +
-+        private int findMemoryType(int typeFilter, int properties) {
++        private int findMemoryType(MemoryStack stack, int typeFilter, int properties) {
 +
-+            VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
++            VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.malloc(stack);
 +            vkGetPhysicalDeviceMemoryProperties(physicalDevice, memProperties);
 +
 +            for(int i = 0;i < memProperties.memoryTypeCount();i++) {

@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java"
-index 9cfec51..983b4ac 100644
+index c6d6636..a8b2fe0 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch20IndexBuffer.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java"
 @@ -1,15 +1,13 @@
@@ -98,7 +98,7 @@ index 9cfec51..983b4ac 100644
 +
              swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
  
-             vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
+             try(MemoryStack stack = stackPush()) {vkFreeCommandBuffers(device, commandPool, asPointerBuffer(stack, commandBuffers));}
 @@ -305,6 +324,8 @@ public class Ch20IndexBuffer {
  
              cleanupSwapChain();
@@ -124,14 +124,14 @@ index 9cfec51..983b4ac 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkDescriptorSetLayoutBinding.Buffer uboLayoutBinding = VkDescriptorSetLayoutBinding.callocStack(1, stack);
++                VkDescriptorSetLayoutBinding.Buffer uboLayoutBinding = VkDescriptorSetLayoutBinding.calloc(1, stack);
 +                uboLayoutBinding.binding(0);
 +                uboLayoutBinding.descriptorCount(1);
 +                uboLayoutBinding.descriptorType(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 +                uboLayoutBinding.pImmutableSamplers(null);
 +                uboLayoutBinding.stageFlags(VK_SHADER_STAGE_VERTEX_BIT);
 +
-+                VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.callocStack(stack);
++                VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.calloc(stack);
 +                layoutInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
 +                layoutInfo.pBindings(uboLayoutBinding);
 +
@@ -159,7 +159,7 @@ index 9cfec51..983b4ac 100644
                  long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
 @@ -789,6 +835,7 @@ public class Ch20IndexBuffer {
  
-                 VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
+                 VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack);
                  pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
 +                pipelineLayoutInfo.pSetLayouts(stack.longs(descriptorSetLayout));
  
@@ -209,9 +209,22 @@ index 9cfec51..983b4ac 100644
 +            ubo.proj.get(mat4Size * 2, buffer);
 +        }
 +
-         private int findMemoryType(int typeFilter, int properties) {
+         private int findMemoryType(MemoryStack stack, int typeFilter, int properties) {
  
-             VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.mallocStack();
+             VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.malloc(stack);
+@@ -1152,10 +1232,10 @@ public class Ch20IndexBuffer {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.calloc(stack);
++                VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.callocStack(stack);
+                 semaphoreInfo.sType(VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
+ 
+-                VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.calloc(stack);
++                VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.callocStack(stack);
+                 fenceInfo.sType(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
+                 fenceInfo.flags(VK_FENCE_CREATE_SIGNALED_BIT);
+ 
 @@ -1178,6 +1258,27 @@ public class Ch20IndexBuffer {
              }
          }
@@ -240,7 +253,7 @@ index 9cfec51..983b4ac 100644
          private void drawFrame() {
  
              try(MemoryStack stack = stackPush()) {
-@@ -1200,6 +1301,8 @@ public class Ch20IndexBuffer {
+@@ -1200,13 +1301,15 @@ public class Ch20IndexBuffer {
  
                  final int imageIndex = pImageIndex.get(0);
  
@@ -249,3 +262,11 @@ index 9cfec51..983b4ac 100644
                  if(imagesInFlight.containsKey(imageIndex)) {
                      vkWaitForFences(device, imagesInFlight.get(imageIndex).fence(), true, UINT64_MAX);
                  }
+ 
+                 imagesInFlight.put(imageIndex, thisFrame);
+ 
+-                VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
++                VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
+                 submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
+ 
+                 submitInfo.waitSemaphoreCount(1);

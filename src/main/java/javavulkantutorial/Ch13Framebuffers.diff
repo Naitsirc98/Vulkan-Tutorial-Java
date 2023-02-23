@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java"
-index 5acde35..d26b3ba 100644
+index b836f3e..a12bf81 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch12GraphicsPipelineComplete.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch13Framebuffers.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -54,7 +54,7 @@ index 5acde35..d26b3ba 100644
 +                LongBuffer pFramebuffer = stack.mallocLong(1);
 +
 +                // Lets allocate the create info struct once and just update the pAttachments field each iteration
-+                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.callocStack(stack);
++                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.calloc(stack);
 +                framebufferInfo.sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
 +                framebufferInfo.renderPass(renderPass);
 +                framebufferInfo.width(swapChainExtent.width());

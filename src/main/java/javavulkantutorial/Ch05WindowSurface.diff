@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch04LogicalDevice.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch05WindowSurface.java"
-index 423530f..7ce3570 100644
+index 10d7127..c5bae31 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch04LogicalDevice.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch05WindowSurface.java"
 @@ -12,15 +12,18 @@ import java.util.stream.IntStream;
@@ -93,10 +93,10 @@ index 423530f..7ce3570 100644
  
                  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
  
--                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(1, stack);
+-                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(1, stack);
 +                int[] uniqueQueueFamilies = indices.unique();
 +
-+                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(uniqueQueueFamilies.length, stack);
++                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueQueueFamilies.length, stack);
  
 -                queueCreateInfos.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
 -                queueCreateInfos.queueFamilyIndex(indices.graphicsFamily);
@@ -108,7 +108,7 @@ index 423530f..7ce3570 100644
 +                    queueCreateInfo.pQueuePriorities(stack.floats(1.0f));
 +                }
  
-                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
  
 @@ -283,11 +314,13 @@ public class Ch04LogicalDevice {
  

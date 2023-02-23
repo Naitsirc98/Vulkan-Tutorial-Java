@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch15HelloTriangle.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java"
-index ee2617a..853b5a5 100644
+index e6ca21a..a9e8226 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch15HelloTriangle.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java"
 @@ -3,6 +3,7 @@ package javavulkantutorial;
@@ -99,7 +99,7 @@ index ee2617a..853b5a5 100644
  
              swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
  
-+            vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
++            try(MemoryStack stack = stackPush()) {vkFreeCommandBuffers(device, commandPool, asPointerBuffer(stack, commandBuffers));}
 +
              vkDestroyPipeline(device, graphicsPipeline, null);
  
@@ -197,23 +197,21 @@ index ee2617a..853b5a5 100644
                  return capabilities.currentExtent();
              }
  
--            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(WIDTH, HEIGHT);
+-            VkExtent2D actualExtent = VkExtent2D.malloc(stack).set(WIDTH, HEIGHT);
 +            IntBuffer width = stackGet().ints(0);
 +            IntBuffer height = stackGet().ints(0);
 +
 +            glfwGetFramebufferSize(window, width, height);
 +
-+            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(width.get(0), height.get(0));
++            VkExtent2D actualExtent = VkExtent2D.malloc(stack).set(width.get(0), height.get(0));
  
              VkExtent2D minExtent = capabilities.minImageExtent();
              VkExtent2D maxExtent = capabilities.maxImageExtent();
-@@ -1075,6 +1141,17 @@ public class Ch15HelloTriangle {
+@@ -1073,6 +1139,15 @@ public class Ch15HelloTriangle {
              return buffer.rewind();
          }
  
-+        private PointerBuffer asPointerBuffer(List<? extends Pointer> list) {
-+
-+            MemoryStack stack = stackGet();
++        private PointerBuffer asPointerBuffer(MemoryStack stack, List<? extends Pointer> list) {
 +
 +            PointerBuffer buffer = stack.mallocPointer(list.size());
 +
@@ -222,6 +220,6 @@ index ee2617a..853b5a5 100644
 +            return buffer.rewind();
 +        }
 +
-         private PointerBuffer getRequiredExtensions() {
+         private PointerBuffer getRequiredExtensions(MemoryStack stack) {
  
              PointerBuffer glfwExtensions = glfwGetRequiredInstanceExtensions();

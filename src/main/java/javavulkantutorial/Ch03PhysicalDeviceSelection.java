@@ -149,7 +149,7 @@ public class Ch03PhysicalDeviceSelection {
 
                 // Use calloc to initialize the structs with 0s. Otherwise, the program can crash due to random values
 
-                VkApplicationInfo appInfo = VkApplicationInfo.callocStack(stack);
+                VkApplicationInfo appInfo = VkApplicationInfo.calloc(stack);
 
                 appInfo.sType(VK_STRUCTURE_TYPE_APPLICATION_INFO);
                 appInfo.pApplicationName(stack.UTF8Safe("Hello Triangle"));
@@ -158,18 +158,18 @@ public class Ch03PhysicalDeviceSelection {
                 appInfo.engineVersion(VK_MAKE_VERSION(1, 0, 0));
                 appInfo.apiVersion(VK_API_VERSION_1_0);
 
-                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.callocStack(stack);
+                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
                 createInfo.pApplicationInfo(appInfo);
                 // enabledExtensionCount is implicitly set when you call ppEnabledExtensionNames
-                createInfo.ppEnabledExtensionNames(getRequiredExtensions());
+                createInfo.ppEnabledExtensionNames(getRequiredExtensions(stack));
 
                 if(ENABLE_VALIDATION_LAYERS) {
 
-                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer());
+                    createInfo.ppEnabledLayerNames(validationLayersAsPointerBuffer(stack));
 
-                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
                     populateDebugMessengerCreateInfo(debugCreateInfo);
                     createInfo.pNext(debugCreateInfo.address());
                 }
@@ -200,7 +200,7 @@ public class Ch03PhysicalDeviceSelection {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
 
                 populateDebugMessengerCreateInfo(createInfo);
 
@@ -261,7 +261,7 @@ public class Ch03PhysicalDeviceSelection {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
 
-                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.mallocStack(queueFamilyCount.get(0), stack);
+                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.malloc(queueFamilyCount.get(0), stack);
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
@@ -274,9 +274,7 @@ public class Ch03PhysicalDeviceSelection {
             }
         }
 
-        private PointerBuffer validationLayersAsPointerBuffer() {
-
-            MemoryStack stack = stackGet();
+        private PointerBuffer validationLayersAsPointerBuffer(MemoryStack stack) {
 
             PointerBuffer buffer = stack.mallocPointer(VALIDATION_LAYERS.size());
 
@@ -287,13 +285,11 @@ public class Ch03PhysicalDeviceSelection {
             return buffer.rewind();
         }
 
-        private PointerBuffer getRequiredExtensions() {
+        private PointerBuffer getRequiredExtensions(MemoryStack stack) {
 
             PointerBuffer glfwExtensions = glfwGetRequiredInstanceExtensions();
 
             if(ENABLE_VALIDATION_LAYERS) {
-
-                MemoryStack stack = stackGet();
 
                 PointerBuffer extensions = stack.mallocPointer(glfwExtensions.capacity() + 1);
 
@@ -315,7 +311,7 @@ public class Ch03PhysicalDeviceSelection {
 
                 vkEnumerateInstanceLayerProperties(layerCount, null);
 
-                VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(layerCount.get(0), stack);
+                VkLayerProperties.Buffer availableLayers = VkLayerProperties.malloc(layerCount.get(0), stack);
 
                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
 

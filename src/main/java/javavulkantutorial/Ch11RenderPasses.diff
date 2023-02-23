@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch10FixedFunctions.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java"
-index 1254e60..139f975 100644
+index 8660672..216e0f1 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch10FixedFunctions.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch11RenderPasses.java"
 @@ -28,7 +28,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -44,7 +44,7 @@ index 1254e60..139f975 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
++                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.calloc(1, stack);
 +                colorAttachment.format(swapChainImageFormat);
 +                colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
 +                colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
@@ -54,16 +54,16 @@ index 1254e60..139f975 100644
 +                colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
 +                colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 +
-+                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
++                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.calloc(1, stack);
 +                colorAttachmentRef.attachment(0);
 +                colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 +
-+                VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
++                VkSubpassDescription.Buffer subpass = VkSubpassDescription.calloc(1, stack);
 +                subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
 +                subpass.colorAttachmentCount(1);
 +                subpass.pColorAttachments(colorAttachmentRef);
 +
-+                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
++                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.calloc(stack);
 +                renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
 +                renderPassInfo.pAttachments(colorAttachment);
 +                renderPassInfo.pSubpasses(subpass);

@@ -1,14 +1,14 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch26DepthBuffering.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch27ModelLoading.java"
-index dfd94d9..f9c0cfe 100644
+index 5e5873b..ca38319 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch26DepthBuffering.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch27ModelLoading.java"
-@@ -3,11 +3,14 @@ package javavulkantutorial;
+@@ -3,10 +3,14 @@ package javavulkantutorial;
  import javavulkantutorial.ShaderSPIRVUtils.SPIRV;
  import org.joml.*;
  import org.lwjgl.PointerBuffer;
 +import org.lwjgl.assimp.AIScene;
 +import org.lwjgl.assimp.Assimp;
- import org.lwjgl.system.Configuration;
++import org.lwjgl.system.Configuration;
  import org.lwjgl.system.MemoryStack;
  import org.lwjgl.system.Pointer;
  import org.lwjgl.vulkan.*;
@@ -17,7 +17,7 @@ index dfd94d9..f9c0cfe 100644
  import java.lang.Math;
  import java.net.URI;
  import java.net.URISyntaxException;
-@@ -23,9 +26,11 @@ import static java.lang.ClassLoader.getSystemClassLoader;
+@@ -22,9 +26,11 @@ import static java.lang.ClassLoader.getSystemClassLoader;
  import static java.util.stream.Collectors.toSet;
  import static javavulkantutorial.AlignmentUtils.alignas;
  import static javavulkantutorial.AlignmentUtils.alignof;
@@ -29,7 +29,7 @@ index dfd94d9..f9c0cfe 100644
  import static org.lwjgl.glfw.GLFW.*;
  import static org.lwjgl.glfw.GLFWVulkan.glfwCreateWindowSurface;
  import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
-@@ -39,7 +44,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
+@@ -38,7 +44,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
  import static org.lwjgl.vulkan.KHRSwapchain.*;
  import static org.lwjgl.vulkan.VK10.*;
  
@@ -38,7 +38,7 @@ index dfd94d9..f9c0cfe 100644
  
      private static class HelloTriangleApplication {
  
-@@ -198,23 +203,6 @@ public class Ch26DepthBuffering {
+@@ -197,23 +203,6 @@ public class Ch26DepthBuffering {
  
          }
  
@@ -62,7 +62,7 @@ index dfd94d9..f9c0cfe 100644
          // ======= FIELDS ======= //
  
          private long window;
-@@ -254,6 +242,8 @@ public class Ch26DepthBuffering {
+@@ -253,6 +242,8 @@ public class Ch26DepthBuffering {
          private long textureImageView;
          private long textureSampler;
  
@@ -71,7 +71,7 @@ index dfd94d9..f9c0cfe 100644
          private long vertexBuffer;
          private long vertexBufferMemory;
          private long indexBuffer;
-@@ -320,6 +310,7 @@ public class Ch26DepthBuffering {
+@@ -319,6 +310,7 @@ public class Ch26DepthBuffering {
              createTextureImage();
              createTextureImageView();
              createTextureSampler();
@@ -79,7 +79,7 @@ index dfd94d9..f9c0cfe 100644
              createVertexBuffer();
              createIndexBuffer();
              createDescriptorSetLayout();
-@@ -1068,7 +1059,7 @@ public class Ch26DepthBuffering {
+@@ -1067,7 +1059,7 @@ public class Ch26DepthBuffering {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -88,7 +88,7 @@ index dfd94d9..f9c0cfe 100644
  
                  IntBuffer pWidth = stack.mallocInt(1);
                  IntBuffer pHeight = stack.mallocInt(1);
-@@ -1333,11 +1324,37 @@ public class Ch26DepthBuffering {
+@@ -1332,11 +1324,37 @@ public class Ch26DepthBuffering {
              src.limit(src.capacity()).rewind();
          }
  
@@ -127,7 +127,7 @@ index dfd94d9..f9c0cfe 100644
  
                  LongBuffer pBuffer = stack.mallocLong(1);
                  LongBuffer pBufferMemory = stack.mallocLong(1);
-@@ -1354,7 +1371,7 @@ public class Ch26DepthBuffering {
+@@ -1353,7 +1371,7 @@ public class Ch26DepthBuffering {
  
                  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                  {
@@ -136,7 +136,7 @@ index dfd94d9..f9c0cfe 100644
                  }
                  vkUnmapMemory(device, stagingBufferMemory);
  
-@@ -1378,7 +1395,7 @@ public class Ch26DepthBuffering {
+@@ -1377,7 +1395,7 @@ public class Ch26DepthBuffering {
  
              try(MemoryStack stack = stackPush()) {
  
@@ -145,7 +145,7 @@ index dfd94d9..f9c0cfe 100644
  
                  LongBuffer pBuffer = stack.mallocLong(1);
                  LongBuffer pBufferMemory = stack.mallocLong(1);
-@@ -1395,7 +1412,7 @@ public class Ch26DepthBuffering {
+@@ -1394,7 +1412,7 @@ public class Ch26DepthBuffering {
  
                  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, data);
                  {
@@ -154,7 +154,25 @@ index dfd94d9..f9c0cfe 100644
                  }
                  vkUnmapMemory(device, stagingBufferMemory);
  
-@@ -1635,10 +1652,10 @@ public class Ch26DepthBuffering {
+@@ -1443,7 +1461,7 @@ public class Ch26DepthBuffering {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.callocStack(2, stack);
++                VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(2, stack);
+ 
+                 VkDescriptorPoolSize uniformBufferPoolSize = poolSizes.get(0);
+                 uniformBufferPoolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+@@ -1453,7 +1471,7 @@ public class Ch26DepthBuffering {
+                 textureSamplerPoolSize.type(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                 textureSamplerPoolSize.descriptorCount(swapChainImages.size());
+ 
+-                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
++                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.calloc(stack);
+                 poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+                 poolInfo.pPoolSizes(poolSizes);
+                 poolInfo.maxSets(swapChainImages.size());
+@@ -1634,10 +1652,10 @@ public class Ch26DepthBuffering {
              }
          }
  
@@ -168,7 +186,7 @@ index dfd94d9..f9c0cfe 100644
              }
  
              buffer.rewind();
-@@ -1729,12 +1746,12 @@ public class Ch26DepthBuffering {
+@@ -1728,12 +1746,12 @@ public class Ch26DepthBuffering {
                          LongBuffer offsets = stack.longs(0);
                          vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers, offsets);
  

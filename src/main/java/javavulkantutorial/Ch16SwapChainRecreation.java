@@ -214,7 +214,7 @@ public class Ch16SwapChainRecreation {
 
             swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
 
-            vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
+            try(MemoryStack stack = stackPush()) {vkFreeCommandBuffers(device, commandPool, asPointerBuffer(stack, commandBuffers));}
 
             vkDestroyPipeline(device, graphicsPipeline, null);
 
@@ -295,7 +295,7 @@ public class Ch16SwapChainRecreation {
 
                 // Use calloc to initialize the structs with 0s. Otherwise, the program can crash due to random values
 
-                VkApplicationInfo appInfo = VkApplicationInfo.callocStack(stack);
+                VkApplicationInfo appInfo = VkApplicationInfo.calloc(stack);
 
                 appInfo.sType(VK_STRUCTURE_TYPE_APPLICATION_INFO);
                 appInfo.pApplicationName(stack.UTF8Safe("Hello Triangle"));
@@ -304,18 +304,18 @@ public class Ch16SwapChainRecreation {
                 appInfo.engineVersion(VK_MAKE_VERSION(1, 0, 0));
                 appInfo.apiVersion(VK_API_VERSION_1_0);
 
-                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.callocStack(stack);
+                VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
                 createInfo.pApplicationInfo(appInfo);
                 // enabledExtensionCount is implicitly set when you call ppEnabledExtensionNames
-                createInfo.ppEnabledExtensionNames(getRequiredExtensions());
+                createInfo.ppEnabledExtensionNames(getRequiredExtensions(stack));
 
                 if(ENABLE_VALIDATION_LAYERS) {
 
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(asPointerBuffer(stack, VALIDATION_LAYERS));
 
-                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
                     populateDebugMessengerCreateInfo(debugCreateInfo);
                     createInfo.pNext(debugCreateInfo.address());
                 }
@@ -346,7 +346,7 @@ public class Ch16SwapChainRecreation {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.callocStack(stack);
+                VkDebugUtilsMessengerCreateInfoEXT createInfo = VkDebugUtilsMessengerCreateInfoEXT.calloc(stack);
 
                 populateDebugMessengerCreateInfo(createInfo);
 
@@ -412,7 +412,7 @@ public class Ch16SwapChainRecreation {
 
                 int[] uniqueQueueFamilies = indices.unique();
 
-                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.callocStack(uniqueQueueFamilies.length, stack);
+                VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueQueueFamilies.length, stack);
 
                 for(int i = 0;i < uniqueQueueFamilies.length;i++) {
                     VkDeviceQueueCreateInfo queueCreateInfo = queueCreateInfos.get(i);
@@ -421,9 +421,9 @@ public class Ch16SwapChainRecreation {
                     queueCreateInfo.pQueuePriorities(stack.floats(1.0f));
                 }
 
-                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+                VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
 
-                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
+                VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
                 createInfo.pQueueCreateInfos(queueCreateInfos);
@@ -431,10 +431,10 @@ public class Ch16SwapChainRecreation {
 
                 createInfo.pEnabledFeatures(deviceFeatures);
 
-                createInfo.ppEnabledExtensionNames(asPointerBuffer(DEVICE_EXTENSIONS));
+                createInfo.ppEnabledExtensionNames(asPointerBuffer(stack, DEVICE_EXTENSIONS));
 
                 if(ENABLE_VALIDATION_LAYERS) {
-                    createInfo.ppEnabledLayerNames(asPointerBuffer(VALIDATION_LAYERS));
+                    createInfo.ppEnabledLayerNames(asPointerBuffer(stack, VALIDATION_LAYERS));
                 }
 
                 PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
@@ -463,7 +463,7 @@ public class Ch16SwapChainRecreation {
 
                 VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
                 int presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-                VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+                VkExtent2D extent = chooseSwapExtent(stack, swapChainSupport.capabilities);
 
                 IntBuffer imageCount = stack.ints(swapChainSupport.capabilities.minImageCount() + 1);
 
@@ -471,7 +471,7 @@ public class Ch16SwapChainRecreation {
                     imageCount.put(0, swapChainSupport.capabilities.maxImageCount());
                 }
 
-                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.callocStack(stack);
+                VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
                 createInfo.surface(surface);
@@ -535,7 +535,7 @@ public class Ch16SwapChainRecreation {
 
                 for(long swapChainImage : swapChainImages) {
 
-                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
+                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.calloc(stack);
 
                     createInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
                     createInfo.image(swapChainImage);
@@ -567,7 +567,7 @@ public class Ch16SwapChainRecreation {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.callocStack(1, stack);
+                VkAttachmentDescription.Buffer colorAttachment = VkAttachmentDescription.calloc(1, stack);
                 colorAttachment.format(swapChainImageFormat);
                 colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT);
                 colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
@@ -577,16 +577,16 @@ public class Ch16SwapChainRecreation {
                 colorAttachment.initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
                 colorAttachment.finalLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.callocStack(1, stack);
+                VkAttachmentReference.Buffer colorAttachmentRef = VkAttachmentReference.calloc(1, stack);
                 colorAttachmentRef.attachment(0);
                 colorAttachmentRef.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-                VkSubpassDescription.Buffer subpass = VkSubpassDescription.callocStack(1, stack);
+                VkSubpassDescription.Buffer subpass = VkSubpassDescription.calloc(1, stack);
                 subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
                 subpass.colorAttachmentCount(1);
                 subpass.pColorAttachments(colorAttachmentRef);
 
-                VkSubpassDependency.Buffer dependency = VkSubpassDependency.callocStack(1, stack);
+                VkSubpassDependency.Buffer dependency = VkSubpassDependency.calloc(1, stack);
                 dependency.srcSubpass(VK_SUBPASS_EXTERNAL);
                 dependency.dstSubpass(0);
                 dependency.srcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
@@ -594,7 +594,7 @@ public class Ch16SwapChainRecreation {
                 dependency.dstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
                 dependency.dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
 
-                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.callocStack(stack);
+                VkRenderPassCreateInfo renderPassInfo = VkRenderPassCreateInfo.calloc(stack);
                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
                 renderPassInfo.pAttachments(colorAttachment);
                 renderPassInfo.pSubpasses(subpass);
@@ -624,7 +624,7 @@ public class Ch16SwapChainRecreation {
 
                 ByteBuffer entryPoint = stack.UTF8("main");
 
-                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.callocStack(2, stack);
+                VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.calloc(2, stack);
 
                 VkPipelineShaderStageCreateInfo vertShaderStageInfo = shaderStages.get(0);
 
@@ -642,19 +642,19 @@ public class Ch16SwapChainRecreation {
 
                 // ===> VERTEX STAGE <===
 
-                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
+                VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.calloc(stack);
                 vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
 
                 // ===> ASSEMBLY STAGE <===
 
-                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.callocStack(stack);
+                VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.calloc(stack);
                 inputAssembly.sType(VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO);
                 inputAssembly.topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
                 inputAssembly.primitiveRestartEnable(false);
 
                 // ===> VIEWPORT & SCISSOR
 
-                VkViewport.Buffer viewport = VkViewport.callocStack(1, stack);
+                VkViewport.Buffer viewport = VkViewport.calloc(1, stack);
                 viewport.x(0.0f);
                 viewport.y(0.0f);
                 viewport.width(swapChainExtent.width());
@@ -662,18 +662,18 @@ public class Ch16SwapChainRecreation {
                 viewport.minDepth(0.0f);
                 viewport.maxDepth(1.0f);
 
-                VkRect2D.Buffer scissor = VkRect2D.callocStack(1, stack);
-                scissor.offset(VkOffset2D.callocStack(stack).set(0, 0));
+                VkRect2D.Buffer scissor = VkRect2D.calloc(1, stack);
+                scissor.offset(VkOffset2D.calloc(stack).set(0, 0));
                 scissor.extent(swapChainExtent);
 
-                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.callocStack(stack);
+                VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.calloc(stack);
                 viewportState.sType(VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO);
                 viewportState.pViewports(viewport);
                 viewportState.pScissors(scissor);
 
                 // ===> RASTERIZATION STAGE <===
 
-                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.callocStack(stack);
+                VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.calloc(stack);
                 rasterizer.sType(VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO);
                 rasterizer.depthClampEnable(false);
                 rasterizer.rasterizerDiscardEnable(false);
@@ -685,18 +685,18 @@ public class Ch16SwapChainRecreation {
 
                 // ===> MULTISAMPLING <===
 
-                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.callocStack(stack);
+                VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.calloc(stack);
                 multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
                 multisampling.sampleShadingEnable(false);
                 multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
 
                 // ===> COLOR BLENDING <===
 
-                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.callocStack(1, stack);
+                VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);
                 colorBlendAttachment.colorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
                 colorBlendAttachment.blendEnable(false);
 
-                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.callocStack(stack);
+                VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.calloc(stack);
                 colorBlending.sType(VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);
                 colorBlending.logicOpEnable(false);
                 colorBlending.logicOp(VK_LOGIC_OP_COPY);
@@ -705,7 +705,7 @@ public class Ch16SwapChainRecreation {
 
                 // ===> PIPELINE LAYOUT CREATION <===
 
-                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
+                VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack);
                 pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
 
                 LongBuffer pPipelineLayout = stack.longs(VK_NULL_HANDLE);
@@ -716,7 +716,7 @@ public class Ch16SwapChainRecreation {
 
                 pipelineLayout = pPipelineLayout.get(0);
 
-                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.callocStack(1, stack);
+                VkGraphicsPipelineCreateInfo.Buffer pipelineInfo = VkGraphicsPipelineCreateInfo.calloc(1, stack);
                 pipelineInfo.sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
                 pipelineInfo.pStages(shaderStages);
                 pipelineInfo.pVertexInputState(vertexInputInfo);
@@ -759,7 +759,7 @@ public class Ch16SwapChainRecreation {
                 LongBuffer pFramebuffer = stack.mallocLong(1);
 
                 // Lets allocate the create info struct once and just update the pAttachments field each iteration
-                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.callocStack(stack);
+                VkFramebufferCreateInfo framebufferInfo = VkFramebufferCreateInfo.calloc(stack);
                 framebufferInfo.sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
                 framebufferInfo.renderPass(renderPass);
                 framebufferInfo.width(swapChainExtent.width());
@@ -787,7 +787,7 @@ public class Ch16SwapChainRecreation {
 
                 QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.callocStack(stack);
+                VkCommandPoolCreateInfo poolInfo = VkCommandPoolCreateInfo.calloc(stack);
                 poolInfo.sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
                 poolInfo.queueFamilyIndex(queueFamilyIndices.graphicsFamily);
 
@@ -809,7 +809,7 @@ public class Ch16SwapChainRecreation {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
+                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
                 allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
                 allocInfo.commandPool(commandPool);
                 allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
@@ -825,20 +825,20 @@ public class Ch16SwapChainRecreation {
                     commandBuffers.add(new VkCommandBuffer(pCommandBuffers.get(i), device));
                 }
 
-                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
+                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack);
                 beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
 
-                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.callocStack(stack);
+                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.calloc(stack);
                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
 
                 renderPassInfo.renderPass(renderPass);
 
-                VkRect2D renderArea = VkRect2D.callocStack(stack);
-                renderArea.offset(VkOffset2D.callocStack(stack).set(0, 0));
+                VkRect2D renderArea = VkRect2D.calloc(stack);
+                renderArea.offset(VkOffset2D.calloc(stack).set(0, 0));
                 renderArea.extent(swapChainExtent);
                 renderPassInfo.renderArea(renderArea);
 
-                VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
+                VkClearValue.Buffer clearValues = VkClearValue.calloc(1, stack);
                 clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
                 renderPassInfo.pClearValues(clearValues);
 
@@ -878,10 +878,10 @@ public class Ch16SwapChainRecreation {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.callocStack(stack);
+                VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.calloc(stack);
                 semaphoreInfo.sType(VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
 
-                VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.callocStack(stack);
+                VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.calloc(stack);
                 fenceInfo.sType(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
                 fenceInfo.flags(VK_FENCE_CREATE_SIGNALED_BIT);
 
@@ -929,7 +929,7 @@ public class Ch16SwapChainRecreation {
 
                 imagesInFlight.put(imageIndex, thisFrame);
 
-                VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
+                VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
                 submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
 
                 submitInfo.waitSemaphoreCount(1);
@@ -946,7 +946,7 @@ public class Ch16SwapChainRecreation {
                     throw new RuntimeException("Failed to submit draw command buffer");
                 }
 
-                VkPresentInfoKHR presentInfo = VkPresentInfoKHR.callocStack(stack);
+                VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack);
                 presentInfo.sType(VK_STRUCTURE_TYPE_PRESENT_INFO_KHR);
 
                 presentInfo.pWaitSemaphores(thisFrame.pRenderFinishedSemaphore());
@@ -973,7 +973,7 @@ public class Ch16SwapChainRecreation {
 
             try(MemoryStack stack = stackPush()) {
 
-                VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.callocStack(stack);
+                VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.calloc(stack);
 
                 createInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
                 createInfo.pCode(spirvCode);
@@ -1007,7 +1007,7 @@ public class Ch16SwapChainRecreation {
             return VK_PRESENT_MODE_FIFO_KHR;
         }
 
-        private VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR capabilities) {
+        private VkExtent2D chooseSwapExtent(MemoryStack stack, VkSurfaceCapabilitiesKHR capabilities) {
 
             if(capabilities.currentExtent().width() != UINT32_MAX) {
                 return capabilities.currentExtent();
@@ -1018,7 +1018,7 @@ public class Ch16SwapChainRecreation {
 
             glfwGetFramebufferSize(window, width, height);
 
-            VkExtent2D actualExtent = VkExtent2D.mallocStack().set(width.get(0), height.get(0));
+            VkExtent2D actualExtent = VkExtent2D.malloc(stack).set(width.get(0), height.get(0));
 
             VkExtent2D minExtent = capabilities.minImageExtent();
             VkExtent2D maxExtent = capabilities.maxImageExtent();
@@ -1058,7 +1058,7 @@ public class Ch16SwapChainRecreation {
 
                 vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, null);
 
-                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.mallocStack(extensionCount.get(0), stack);
+                VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.malloc(extensionCount.get(0), stack);
 
                 vkEnumerateDeviceExtensionProperties(device, (String)null, extensionCount, availableExtensions);
 
@@ -1073,7 +1073,7 @@ public class Ch16SwapChainRecreation {
 
             SwapChainSupportDetails details = new SwapChainSupportDetails();
 
-            details.capabilities = VkSurfaceCapabilitiesKHR.mallocStack(stack);
+            details.capabilities = VkSurfaceCapabilitiesKHR.malloc(stack);
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, details.capabilities);
 
             IntBuffer count = stack.ints(0);
@@ -1081,7 +1081,7 @@ public class Ch16SwapChainRecreation {
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, null);
 
             if(count.get(0) != 0) {
-                details.formats = VkSurfaceFormatKHR.mallocStack(count.get(0), stack);
+                details.formats = VkSurfaceFormatKHR.malloc(count.get(0), stack);
                 vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, details.formats);
             }
 
@@ -1105,7 +1105,7 @@ public class Ch16SwapChainRecreation {
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
 
-                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.mallocStack(queueFamilyCount.get(0), stack);
+                VkQueueFamilyProperties.Buffer queueFamilies = VkQueueFamilyProperties.malloc(queueFamilyCount.get(0), stack);
 
                 vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
@@ -1128,9 +1128,7 @@ public class Ch16SwapChainRecreation {
             }
         }
 
-        private PointerBuffer asPointerBuffer(Collection<String> collection) {
-
-            MemoryStack stack = stackGet();
+        private PointerBuffer asPointerBuffer(MemoryStack stack, Collection<String> collection) {
 
             PointerBuffer buffer = stack.mallocPointer(collection.size());
 
@@ -1141,9 +1139,7 @@ public class Ch16SwapChainRecreation {
             return buffer.rewind();
         }
 
-        private PointerBuffer asPointerBuffer(List<? extends Pointer> list) {
-
-            MemoryStack stack = stackGet();
+        private PointerBuffer asPointerBuffer(MemoryStack stack, List<? extends Pointer> list) {
 
             PointerBuffer buffer = stack.mallocPointer(list.size());
 
@@ -1152,13 +1148,11 @@ public class Ch16SwapChainRecreation {
             return buffer.rewind();
         }
 
-        private PointerBuffer getRequiredExtensions() {
+        private PointerBuffer getRequiredExtensions(MemoryStack stack) {
 
             PointerBuffer glfwExtensions = glfwGetRequiredInstanceExtensions();
 
             if(ENABLE_VALIDATION_LAYERS) {
-
-                MemoryStack stack = stackGet();
 
                 PointerBuffer extensions = stack.mallocPointer(glfwExtensions.capacity() + 1);
 
@@ -1180,7 +1174,7 @@ public class Ch16SwapChainRecreation {
 
                 vkEnumerateInstanceLayerProperties(layerCount, null);
 
-                VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(layerCount.get(0), stack);
+                VkLayerProperties.Buffer availableLayers = VkLayerProperties.malloc(layerCount.get(0), stack);
 
                 vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
 

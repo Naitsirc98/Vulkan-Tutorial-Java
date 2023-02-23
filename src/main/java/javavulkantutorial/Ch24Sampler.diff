@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch23TextureImage.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java"
-index 597ff20..180b920 100644
+index 17a02f4..d7b4f7f 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch23TextureImage.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch24Sampler.java"
 @@ -35,7 +35,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -41,10 +41,10 @@ index 597ff20..180b920 100644
 @@ -541,6 +547,7 @@ public class Ch23TextureImage {
                  }
  
-                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
+                 VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
 +                deviceFeatures.samplerAnisotropy(true);
  
-                 VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.callocStack(stack);
+                 VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc(stack);
  
 @@ -648,37 +655,8 @@ public class Ch23TextureImage {
  
@@ -56,7 +56,7 @@ index 597ff20..180b920 100644
 -
 -                for(long swapChainImage : swapChainImages) {
 -
--                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
+-                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.calloc(stack);
 -
 -                    createInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
 -                    createInfo.image(swapChainImage);
@@ -98,7 +98,7 @@ index 597ff20..180b920 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkSamplerCreateInfo samplerInfo = VkSamplerCreateInfo.callocStack(stack);
++                VkSamplerCreateInfo samplerInfo = VkSamplerCreateInfo.calloc(stack);
 +                samplerInfo.sType(VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO);
 +                samplerInfo.magFilter(VK_FILTER_LINEAR);
 +                samplerInfo.minFilter(VK_FILTER_LINEAR);
@@ -127,7 +127,7 @@ index 597ff20..180b920 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkImageViewCreateInfo viewInfo = VkImageViewCreateInfo.callocStack(stack);
++                VkImageViewCreateInfo viewInfo = VkImageViewCreateInfo.calloc(stack);
 +                viewInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
 +                viewInfo.image(image);
 +                viewInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
@@ -151,6 +151,15 @@ index 597ff20..180b920 100644
          private void createImage(int width, int height, int format, int tiling, int usage, int memProperties,
                                   LongBuffer pTextureImage, LongBuffer pTextureImageMemory) {
  
+@@ -1330,7 +1366,7 @@ public class Ch23TextureImage {
+                 VkMemoryRequirements memRequirements = VkMemoryRequirements.malloc(stack);
+                 vkGetBufferMemoryRequirements(device, pBuffer.get(0), memRequirements);
+ 
+-                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.callocStack(stack);
++                VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack);
+                 allocInfo.sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+                 allocInfo.allocationSize(memRequirements.size());
+                 allocInfo.memoryTypeIndex(findMemoryType(stack, memRequirements.memoryTypeBits(), properties));
 @@ -1716,15 +1752,19 @@ public class Ch23TextureImage {
  
              boolean extensionsSupported = checkDeviceExtensionSupport(device);
@@ -161,7 +170,7 @@ index 597ff20..180b920 100644
                  try(MemoryStack stack = stackPush()) {
                      SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, stack);
                      swapChainAdequate = swapChainSupport.formats.hasRemaining() && swapChainSupport.presentModes.hasRemaining();
-+                    VkPhysicalDeviceFeatures supportedFeatures = VkPhysicalDeviceFeatures.mallocStack(stack);
++                    VkPhysicalDeviceFeatures supportedFeatures = VkPhysicalDeviceFeatures.malloc(stack);
 +                    vkGetPhysicalDeviceFeatures(device, supportedFeatures);
 +                    anisotropySupported = supportedFeatures.samplerAnisotropy();
                  }

@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java"
-index 853b5a5..6196313 100644
+index a9e8226..4405dca 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch16SwapChainRecreation.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch17VertexInput.java"
 @@ -1,6 +1,10 @@
@@ -40,10 +40,10 @@ index 853b5a5..6196313 100644
 +                this.color = color;
 +            }
 +
-+            private static VkVertexInputBindingDescription.Buffer getBindingDescription() {
++            private static VkVertexInputBindingDescription.Buffer getBindingDescription(MemoryStack stack) {
 +
 +                VkVertexInputBindingDescription.Buffer bindingDescription =
-+                        VkVertexInputBindingDescription.callocStack(1);
++                        VkVertexInputBindingDescription.calloc(1, stack);
 +
 +                bindingDescription.binding(0);
 +                bindingDescription.stride(Vertex.SIZEOF);
@@ -52,10 +52,10 @@ index 853b5a5..6196313 100644
 +                return bindingDescription;
 +            }
 +
-+            private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions() {
++            private static VkVertexInputAttributeDescription.Buffer getAttributeDescriptions(MemoryStack stack) {
 +
 +                VkVertexInputAttributeDescription.Buffer attributeDescriptions =
-+                        VkVertexInputAttributeDescription.callocStack(2);
++                        VkVertexInputAttributeDescription.calloc(2);
 +
 +                // Position
 +                VkVertexInputAttributeDescription posDescription = attributeDescriptions.get(0);
@@ -99,10 +99,10 @@ index 853b5a5..6196313 100644
                  long fragShaderModule = createShaderModule(fragShaderSPIRV.bytecode());
 @@ -644,6 +705,8 @@ public class Ch16SwapChainRecreation {
  
-                 VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.callocStack(stack);
+                 VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.calloc(stack);
                  vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
-+                vertexInputInfo.pVertexBindingDescriptions(Vertex.getBindingDescription());
-+                vertexInputInfo.pVertexAttributeDescriptions(Vertex.getAttributeDescriptions());
++                vertexInputInfo.pVertexBindingDescriptions(Vertex.getBindingDescription(stack));
++                vertexInputInfo.pVertexAttributeDescriptions(Vertex.getAttributeDescriptions(stack));
  
                  // ===> ASSEMBLY STAGE <===
  
@@ -133,4 +133,4 @@ index 853b5a5..6196313 100644
 +                    throw new RuntimeException("Failed to submit draw command buffer: " + vkResult);
                  }
  
-                 VkPresentInfoKHR presentInfo = VkPresentInfoKHR.callocStack(stack);
+                 VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack);

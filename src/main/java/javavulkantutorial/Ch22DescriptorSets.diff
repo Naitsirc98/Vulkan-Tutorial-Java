@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch22DescriptorSets.java"
-index 983b4ac..0b09c7a 100644
+index a8b2fe0..6173ec8 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch21DescriptorLayout.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch22DescriptorSets.java"
 @@ -16,6 +16,8 @@ import java.util.stream.IntStream;
@@ -44,7 +44,7 @@ index 983b4ac..0b09c7a 100644
 +
              swapChainFramebuffers.forEach(framebuffer -> vkDestroyFramebuffer(device, framebuffer, null));
  
-             vkFreeCommandBuffers(device, commandPool, asPointerBuffer(commandBuffers));
+             try(MemoryStack stack = stackPush()) {vkFreeCommandBuffers(device, commandPool, asPointerBuffer(stack, commandBuffers));}
 @@ -384,6 +391,8 @@ public class Ch21DescriptorLayout {
              createGraphicsPipeline();
              createFramebuffers();
@@ -72,11 +72,11 @@ index 983b4ac..0b09c7a 100644
 +
 +            try(MemoryStack stack = stackPush()) {
 +
-+                VkDescriptorPoolSize.Buffer poolSize = VkDescriptorPoolSize.callocStack(1, stack);
++                VkDescriptorPoolSize.Buffer poolSize = VkDescriptorPoolSize.calloc(1, stack);
 +                poolSize.type(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 +                poolSize.descriptorCount(swapChainImages.size());
 +
-+                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.callocStack(stack);
++                VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.calloc(stack);
 +                poolInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
 +                poolInfo.pPoolSizes(poolSize);
 +                poolInfo.maxSets(swapChainImages.size());
@@ -100,7 +100,7 @@ index 983b4ac..0b09c7a 100644
 +                    layouts.put(i, descriptorSetLayout);
 +                }
 +
-+                VkDescriptorSetAllocateInfo allocInfo = VkDescriptorSetAllocateInfo.callocStack(stack);
++                VkDescriptorSetAllocateInfo allocInfo = VkDescriptorSetAllocateInfo.calloc(stack);
 +                allocInfo.sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
 +                allocInfo.descriptorPool(descriptorPool);
 +                allocInfo.pSetLayouts(layouts);
@@ -113,11 +113,11 @@ index 983b4ac..0b09c7a 100644
 +
 +                descriptorSets = new ArrayList<>(pDescriptorSets.capacity());
 +
-+                VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.callocStack(1, stack);
++                VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.calloc(1, stack);
 +                bufferInfo.offset(0);
 +                bufferInfo.range(UniformBufferObject.SIZEOF);
 +
-+                VkWriteDescriptorSet.Buffer descriptorWrite = VkWriteDescriptorSet.callocStack(1, stack);
++                VkWriteDescriptorSet.Buffer descriptorWrite = VkWriteDescriptorSet.calloc(1, stack);
 +                descriptorWrite.sType(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
 +                descriptorWrite.dstBinding(0);
 +                descriptorWrite.dstArrayElement(0);
@@ -143,6 +143,15 @@ index 983b4ac..0b09c7a 100644
          private void createBuffer(long size, int usage, int properties, LongBuffer pBuffer, LongBuffer pBufferMemory) {
  
              try(MemoryStack stack = stackPush()) {
+@@ -1092,7 +1174,7 @@ public class Ch21DescriptorLayout {
+                 }
+                 vkEndCommandBuffer(commandBuffer);
+ 
+-                VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
++                VkSubmitInfo submitInfo = VkSubmitInfo.callocStack(stack);
+                 submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
+                 submitInfo.pCommandBuffers(pCommandBuffer);
+ 
 @@ -1131,8 +1213,8 @@ public class Ch21DescriptorLayout {
              final int mat4Size = 16 * Float.BYTES;
  
@@ -153,7 +162,42 @@ index 983b4ac..0b09c7a 100644
 +            ubo.proj.get(alignas(mat4Size * 2, alignof(ubo.view)), buffer);
          }
  
-         private int findMemoryType(int typeFilter, int properties) {
+         private int findMemoryType(MemoryStack stack, int typeFilter, int properties) {
+@@ -1157,7 +1239,7 @@ public class Ch21DescriptorLayout {
+ 
+             try(MemoryStack stack = stackPush()) {
+ 
+-                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
++                VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.callocStack(stack);
+                 allocInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+                 allocInfo.commandPool(commandPool);
+                 allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+@@ -1173,20 +1255,20 @@ public class Ch21DescriptorLayout {
+                     commandBuffers.add(new VkCommandBuffer(pCommandBuffers.get(i), device));
+                 }
+ 
+-                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack);
++                VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.callocStack(stack);
+                 beginInfo.sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+ 
+-                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.calloc(stack);
++                VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.callocStack(stack);
+                 renderPassInfo.sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
+ 
+                 renderPassInfo.renderPass(renderPass);
+ 
+-                VkRect2D renderArea = VkRect2D.calloc(stack);
+-                renderArea.offset(VkOffset2D.calloc(stack).set(0, 0));
++                VkRect2D renderArea = VkRect2D.callocStack(stack);
++                renderArea.offset(VkOffset2D.callocStack(stack).set(0, 0));
+                 renderArea.extent(swapChainExtent);
+                 renderPassInfo.renderArea(renderArea);
+ 
+-                VkClearValue.Buffer clearValues = VkClearValue.calloc(1, stack);
++                VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
+                 clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
+                 renderPassInfo.pClearValues(clearValues);
+ 
 @@ -1211,6 +1293,9 @@ public class Ch21DescriptorLayout {
  
                          vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);

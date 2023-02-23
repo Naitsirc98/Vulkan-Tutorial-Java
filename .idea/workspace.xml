@@ -1,13 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AutoImportSettings">
-    <option name="autoReloadType" value="ALL" />
+    <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d5d0016e-7fd9-41ce-9739-badd3bc06112" name="Default Changelist" comment="">
+    <list default="true" id="af4d2bf0-8e35-43e9-bc79-c753b1de82c3" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/$PRODUCT_WORKSPACE_FILE$" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch01InstanceCreation.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch01InstanceCreation.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch01InstanceCreation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch01InstanceCreation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch02ValidationLayers.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch02ValidationLayers.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch02ValidationLayers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch02ValidationLayers.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch03PhysicalDeviceSelection.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch03PhysicalDeviceSelection.diff" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch03PhysicalDeviceSelection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch03PhysicalDeviceSelection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch04LogicalDevice.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch04LogicalDevice.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch04LogicalDevice.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch04LogicalDevice.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch05WindowSurface.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch05WindowSurface.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch05WindowSurface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch05WindowSurface.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch06SwapChainCreation.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch06SwapChainCreation.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch06SwapChainCreation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch06SwapChainCreation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch07ImageViews.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch07ImageViews.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch07ImageViews.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch07ImageViews.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch08GraphicsPipeline.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch08GraphicsPipeline.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch08GraphicsPipeline.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch08GraphicsPipeline.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch09ShaderModules.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch09ShaderModules.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch09ShaderModules.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch09ShaderModules.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch10FixedFunctions.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch10FixedFunctions.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch10FixedFunctions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch10FixedFunctions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch11RenderPasses.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch11RenderPasses.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch11RenderPasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch11RenderPasses.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch12GraphicsPipelineComplete.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch12GraphicsPipelineComplete.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch12GraphicsPipelineComplete.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch12GraphicsPipelineComplete.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch13Framebuffers.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch13Framebuffers.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch13Framebuffers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch13Framebuffers.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch14CommandBuffers.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch14CommandBuffers.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch14CommandBuffers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch14CommandBuffers.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch15HelloTriangle.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch15HelloTriangle.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch15HelloTriangle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch15HelloTriangle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch16SwapChainRecreation.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch16SwapChainRecreation.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch16SwapChainRecreation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch16SwapChainRecreation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch17VertexInput.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch17VertexInput.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch17VertexInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch17VertexInput.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch18VertexBuffer.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch18VertexBuffer.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch18VertexBuffer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch18VertexBuffer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBuffer.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBuffer.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBuffer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBuffer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBufferTransferQueue.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBufferTransferQueue.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBufferTransferQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch19StagingBufferTransferQueue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch20IndexBuffer.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch20IndexBuffer.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch20IndexBuffer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch20IndexBuffer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch21DescriptorLayout.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch21DescriptorLayout.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch21DescriptorLayout.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch21DescriptorLayout.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch22DescriptorSets.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch22DescriptorSets.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch22DescriptorSets.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch22DescriptorSets.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch23TextureImage.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch23TextureImage.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch23TextureImage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch23TextureImage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch24Sampler.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch24Sampler.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch24Sampler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch24Sampler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch25TextureMapping.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch25TextureMapping.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch25TextureMapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch25TextureMapping.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch26DepthBuffering.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch26DepthBuffering.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch26DepthBuffering.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch26DepthBuffering.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch27ModelLoading.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch27ModelLoading.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch27ModelLoading.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch27ModelLoading.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch28Mipmapping.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch28Mipmapping.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch28Mipmapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch28Mipmapping.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch29Multisampling.diff" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch29Multisampling.diff" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch29Multisampling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/javavulkantutorial/Ch29Multisampling.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vulkan-tutorial-java.iml" beforeDir="false" afterPath="$PROJECT_DIR$/vulkan-tutorial-java.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,62 +91,33 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectId" id="1XtUoGqyaFnRWG048XFZYnwDWnj" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="2" id="Add" />
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
-    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="android.sdk.path" value="$USER_HOME$/AppData/Local/Android/Sdk" />
-    <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="project.structure.last.edited" value="Libraries" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
+    </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="workspaceImportEnabled" value="true" />
+      </MavenImportingSettings>
+    </option>
   </component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="G:\JavaDevelopment\Vulkan-Tutorial-Java" />
-      <recent name="G:\JavaDevelopment\Vulkan-Tutorial-Java\src\main\resources\models" />
-      <recent name="G:\JavaDevelopment\Vulkan-Tutorial-Java\src\main\resources\shaders" />
-    </key>
-    <key name="CopyClassDialog.RECENTS_KEY">
-      <recent name="javavulkantutorial" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="G:\JavaDevelopment\Vulkan-Tutorial-Java\src\main\resources\textures" />
-    </key>
+  <component name="ProjectId" id="2M9UMoDmkB0H3LSZoX0requshwy" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
-  <component name="RunManager" selected="Application.Ch03PhysicalDeviceSelection">
-    <configuration name="Ch03PhysicalDeviceSelection" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="javavulkantutorial.Ch03PhysicalDeviceSelection" />
-      <module name="vulkan-tutorial-java" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="javavulkantutorial.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Ch15HelloTriangle" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="javavulkantutorial.Ch15HelloTriangle" />
-      <module name="vulkan-tutorial-java" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="javavulkantutorial.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Application.GitDiff">
     <configuration name="Ch26DepthBuffering" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="javavulkantutorial.Ch26DepthBuffering" />
       <module name="vulkan-tutorial-java" />
@@ -119,48 +157,64 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="ExecuteAll" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="javavulkantutorial.ExecuteAll" />
+      <module name="vulkan-tutorial-java" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="javavulkantutorial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GitDiff" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="javavulkantutorial.GitDiff" />
+      <module name="vulkan-tutorial-java" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="javavulkantutorial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="Vulkan-Tutorial-Java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="Vulkan-Tutorial-Java" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Ch03PhysicalDeviceSelection" />
-        <item itemvalue="Application.Ch26DepthBuffering" />
-        <item itemvalue="Application.Ch15HelloTriangle" />
-        <item itemvalue="Application.Ch29Multisampling" />
+        <item itemvalue="Application.GitDiff" />
         <item itemvalue="Application.Ch28Mipmapping" />
+        <item itemvalue="Application.Ch26DepthBuffering" />
+        <item itemvalue="Application.ExecuteAll" />
+        <item itemvalue="Application.Ch29Multisampling" />
       </list>
     </recent_temporary>
   </component>
-  <component name="SvnConfiguration">
-    <configuration />
-  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="d5d0016e-7fd9-41ce-9739-badd3bc06112" name="Default Changelist" comment="" />
-      <created>1581865057710</created>
+      <changelist id="af4d2bf0-8e35-43e9-bc79-c753b1de82c3" name="Changes" comment="" />
+      <created>1677179247679</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1581865057710</updated>
-      <workItem from="1581865060158" duration="345000" />
-      <workItem from="1581865427316" duration="24826000" />
-      <workItem from="1581935696461" duration="6283000" />
+      <updated>1677179247679</updated>
     </task>
     <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-    <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
 </project>

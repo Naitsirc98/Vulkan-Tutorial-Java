@@ -1,5 +1,5 @@
 diff --git "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch06SwapChainCreation.java" "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch07ImageViews.java"
-index 452b431..c0a6fcf 100644
+index 149ef45..769cc3d 100644
 --- "a/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch06SwapChainCreation.java"
 +++ "b/G:\\Java-Dev\\Vulkan-Tutorial-Java\\src\\main\\java\\javavulkantutorial\\Ch07ImageViews.java"
 @@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.KHRSurface.*;
@@ -50,7 +50,7 @@ index 452b431..c0a6fcf 100644
 +
 +                for(long swapChainImage : swapChainImages) {
 +
-+                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.callocStack(stack);
++                    VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.calloc(stack);
 +
 +                    createInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
 +                    createInfo.image(swapChainImage);
