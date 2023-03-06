@@ -62,7 +62,7 @@ Every chapter have its own Java file to make them independent to each other. How
   
 For maths calculations I will be using [JOML](https://github.com/JOML-CI/JOML), a Java math library for graphics mathematics. Its very similar to [GLM](https://glm.g-truc.net/0.9.9/index.html).
 
-Finally, each chapter have its own .diff file, so you can quickly see the changes made between chapters.
+Finally, each chapter has its own .diff file, so you can quickly see the changes made between chapters.
 
 Please note that the Java code is more verbose than C or C++, so the source files are larger.
 
