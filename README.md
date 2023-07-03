@@ -378,7 +378,7 @@ The shaders are compiled into SPIRV at runtime using [*shaderc*](https://github.
 
 [Read the tutorial](https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation)
 
-![c++](cpp_icon.png)[Original code](https://github.com/Overv/VulkanTutorial/blob/master/code/16_swap_chain_recreation.cpp)
+![c++](cpp_icon.png)[Original code](https://github.com/Overv/VulkanTutorial/blob/master/code/17_swap_chain_recreation.cpp)
 
 ![java](java_icon.png)[Java code](src/main/java/javavulkantutorial/Ch16SwapChainRecreation.java)
 
